@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyber Lab Dashboard</title>
+<style>
+  body { font-family: Arial; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid black; padding: 8px; text-align: left; }
+  th { background-color: #ddd; }
+</style>
+</head>
+
+<body>
+
+<h2>Cyber Lab Monitoring Dashboard</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Time</th>
+      <th>User</th>
+      <th>Window</th>
+    </tr>
+  </thead>
+  <tbody id="data"></tbody>
+</table>
+
+<script>
+async function loadData(){
+ let res = await fetch("http://127.0.0.1:5000/logs");
+ let logs = await res.json();
+
+ let rows = "";
+
+ logs.forEach(log => {
+   let color = (log.window || "").toLowerCase().includes("game") ? "red" : "black";
+
+   rows += `<tr style="color:${color}">
+     <td>${log.time || "N/A"}</td>
+     <td>${log.user || "N/A"}</td>
+     <td>${log.window}</td>
+   </tr>`;
+ });
+
+ document.getElementById("data").innerHTML = rows;
+}
+
+setInterval(loadData, 2000);
+</script>
+
+</body>
+</html>
