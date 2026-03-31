@@ -65,6 +65,7 @@ def log():
 
     return jsonify({"status": "saved"})
 
+
 # -------- GET LOGS --------
 @app.route('/logs', methods=['GET'])
 def get_logs():
@@ -85,6 +86,28 @@ def get_logs():
 
     return jsonify(logs)
 
+
+# -------- ✅ NEW FIX: API EVENTS --------
+@app.route('/api/events', methods=['GET'])
+def api_events():
+    conn = sqlite3.connect("logs.db")
+    c = conn.cursor()
+    c.execute("SELECT window, user, time, alert FROM logs ORDER BY id DESC")
+    rows = c.fetchall()
+    conn.close()
+
+    events = []
+    for r in rows:
+        events.append({
+            "window": r[0],
+            "user": r[1],
+            "time": r[2],
+            "alert": r[3]
+        })
+
+    return jsonify(events)
+
+
 # -------- FILE UPLOAD --------
 @app.route('/upload', methods=['POST'])
 def upload():
@@ -101,10 +124,12 @@ def upload():
 
     return {"status": "uploaded", "file": filename}
 
+
 # -------- SERVE SCREENSHOT --------
 @app.route('/screenshots/<filename>')
 def get_screenshot(filename):
     return send_from_directory('screenshots', filename)
+
 
 # -------- BLOCK WEBSITE --------
 @app.route("/block", methods=["POST"])
@@ -117,13 +142,13 @@ def block_site():
 
     return jsonify({"status": "blocked", "site": site})
 
+
 # -------- GET BLOCKED --------
 @app.route("/get_blocked", methods=["GET"])
 def get_blocked():
     return jsonify(blocked_sites)
 
-# ---------- MAIN ----------
-import os
 
+# ---------- MAIN ----------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=5000, debug=True)
