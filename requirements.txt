@@ -2,3 +2,5 @@ flask
 requests
 pyautogui
 psutil
+flask-cors
+gunicorn
