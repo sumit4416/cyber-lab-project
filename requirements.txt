@@ -1,6 +1,5 @@
-flask
-requests
-pyautogui
-psutil
+Flask
 flask-cors
 gunicorn
+requests
+psutil
