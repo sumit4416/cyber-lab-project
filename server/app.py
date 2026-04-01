@@ -43,6 +43,7 @@ def home():
 def log():
     data = request.json
 
+    print("🔥 DATA RECEIVED:", data)
     window = data.get("window", "")
     user = data.get("user", "unknown")
     time_now = str(datetime.datetime.now())
