@@ -472,20 +472,46 @@ function showTab(name) {
 // ==========================================
 // FETCH DATA
 // ==========================================
-async function fetchAll() {
+ async function fetchAll() {
   if (!SERVER) {
     setStatus("⚠ Enter server URL and click Connect");
     return;
   }
+
   try {
-    const [logsRes, statsRes] = await Promise.all([
-      fetch(`${SERVER}/logs?limit=500`),
-      fetch(`${SERVER}/stats`)
-    ]);
+    const logsRes = await fetch(`${SERVER}/logs?limit=500`);
+    const statsRes = await fetch(`${SERVER}/stats`);
 
-    allLogs = await logsRes.json();
-    const stats = await statsRes.json();
+    // 🔥 CHECK RESPONSE TYPE
+    if (!logsRes.ok || !statsRes.ok) {
+      throw new Error("API not found (check /logs or /stats)");
+    }
 
+    const logsText = await logsRes.text();
+    const statsText = await statsRes.text();
+
+    // 🔥 Detect HTML response
+    if (logsText.startsWith("<") || statsText.startsWith("<")) {
+      throw new Error("Server returned HTML instead of JSON (API issue)");
+    }
+
+    allLogs = JSON.parse(logsText);
+    const stats = JSON.parse(statsText);
+
+    // ✅ UI update
+    document.getElementById("stat-total").textContent = stats.total_logs || 0;
+    document.getElementById("stat-alerts").textContent = stats.total_alerts || 0;
+    document.getElementById("stat-users").textContent = stats.active_users || 0;
+
+    setStatus(`✅ Connected to ${SERVER}`);
+
+    renderTable();
+
+  } catch (e) {
+    console.error(e);
+    setStatus(`❌ ${e.message}`);
+  }
+}
     // Update stats cards
     document.getElementById("stat-total").textContent = stats.total_logs.toLocaleString();
     document.getElementById("stat-alerts").textContent = stats.total_alerts.toLocaleString();
