@@ -442,7 +442,7 @@
 // ==========================================
 // CONFIG
 // ==========================================
-let SERVER = localStorage.getItem("cyberlab_server") || "";
+let SERVER = localStorage.getItem("cyberlab_server") || window.location.origin;
 let allLogs = [];
 let barChart, pieChart, alertChart;
 let previousCount = 0;
@@ -718,6 +718,7 @@ function setStatus(msg) {
 // ==========================================
 // AUTO REFRESH every 5 seconds
 // ==========================================
+document.getElementById("serverInput").value = SERVER;
 if (SERVER) fetchAll();
 setInterval(fetchAll, 5000);
 </script>
