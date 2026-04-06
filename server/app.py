@@ -11,7 +11,7 @@ CORS(app)
 # ---------- FOLDER SETUP ----------
 os.makedirs("screenshots", exist_ok=True)
 
-# ---------- DATABASE SETUP ----------
+# ---------- DATABASE ----------
 def init_db():
     conn = sqlite3.connect("logs.db")
     c = conn.cursor()
@@ -21,7 +21,8 @@ def init_db():
             window TEXT,
             user TEXT,
             time TEXT,
-            alert TEXT
+            alert TEXT,
+            screenshot TEXT
         )
     ''')
     conn.commit()
@@ -38,33 +39,35 @@ blocked_sites = []
 def home():
     return render_template("index.html")
 
+
 # -------- LOG API --------
 @app.route('/log', methods=['POST'])
 def log():
-    data = request.json
+    try:
+        data = request.json
 
-    print("🔥 DATA RECEIVED:", data)
-    window = data.get("window", "")
-    user = data.get("user", "unknown")
-    time_now = str(datetime.datetime.now())
+        window = data.get("window", "")
+        user = data.get("user", "unknown")
+        time_now = str(datetime.datetime.now())
 
-    alert = ""
-    blacklist = ["game", "torrent", "hack"]
+        alert = ""
+        blacklist = ["game", "torrent", "hack", "porn"]
 
-    if any(word in window.lower() for word in blacklist):
-        alert = "⚠ Suspicious Activity"
-        print("⚠ Suspicious activity detected:", window)
+        if any(word in window.lower() for word in blacklist):
+            alert = "⚠ Suspicious Activity"
 
-    conn = sqlite3.connect("logs.db")
-    c = conn.cursor()
-    c.execute(
-        "INSERT INTO logs (window, user, time, alert) VALUES (?, ?, ?, ?)",
-        (window, user, time_now, alert)
-    )
-    conn.commit()
-    conn.close()
+        conn = sqlite3.connect("logs.db")
+        c = conn.cursor()
+        c.execute(
+            "INSERT INTO logs (window, user, time, alert, screenshot) VALUES (?, ?, ?, ?, ?)",
+            (window, user, time_now, alert, "")
+        )
+        conn.commit()
+        conn.close()
 
-    return jsonify({"status": "saved"})
+        return jsonify({"status": "saved"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # -------- GET LOGS --------
@@ -72,7 +75,7 @@ def log():
 def get_logs():
     conn = sqlite3.connect("logs.db")
     c = conn.cursor()
-    c.execute("SELECT window, user, time, alert FROM logs ORDER BY id DESC")
+    c.execute("SELECT window, user, time, alert, screenshot FROM logs ORDER BY id DESC LIMIT 500")
     rows = c.fetchall()
     conn.close()
 
@@ -82,48 +85,60 @@ def get_logs():
             "window": r[0],
             "user": r[1],
             "time": r[2],
-            "alert": r[3]
+            "alert": r[3],
+            "screenshot": r[4]
         })
 
     return jsonify(logs)
 
 
-# -------- ✅ NEW FIX: API EVENTS --------
-@app.route('/api/events', methods=['GET'])
-def api_events():
+# -------- STATS --------
+@app.route('/stats', methods=['GET'])
+def get_stats():
     conn = sqlite3.connect("logs.db")
     c = conn.cursor()
-    c.execute("SELECT window, user, time, alert FROM logs ORDER BY id DESC")
-    rows = c.fetchall()
+
+    c.execute("SELECT COUNT(*) FROM logs")
+    total_logs = c.fetchone()[0]
+
+    c.execute("SELECT COUNT(*) FROM logs WHERE alert != ''")
+    total_alerts = c.fetchone()[0]
+
+    c.execute("SELECT COUNT(DISTINCT user) FROM logs")
+    active_users = c.fetchone()[0]
+
     conn.close()
 
-    events = []
-    for r in rows:
-        events.append({
-            "window": r[0],
-            "user": r[1],
-            "time": r[2],
-            "alert": r[3]
-        })
-
-    return jsonify(events)
+    return jsonify({
+        "total_logs": total_logs,
+        "total_alerts": total_alerts,
+        "active_users": active_users
+    })
 
 
-# -------- FILE UPLOAD --------
+# -------- UPLOAD SCREENSHOT --------
 @app.route('/upload', methods=['POST'])
 def upload():
-    if not request.files:
-        return {"error": "No file"}, 400
+    try:
+        if 'screenshot' not in request.files:
+            return jsonify({"error": "No file"}), 400
 
-    file = list(request.files.values())[0]
-    filename = secure_filename(file.filename)
-    filepath = os.path.join("screenshots", filename)
+        file = request.files['screenshot']
+        filename = secure_filename(file.filename)
+        filepath = os.path.join("screenshots", filename)
 
-    file.save(filepath)
+        file.save(filepath)
 
-    print("Saved:", filepath)
+        # Save screenshot name in latest log
+        conn = sqlite3.connect("logs.db")
+        c = conn.cursor()
+        c.execute("UPDATE logs SET screenshot=? WHERE id=(SELECT MAX(id) FROM logs)", (filename,))
+        conn.commit()
+        conn.close()
 
-    return {"status": "uploaded", "file": filename}
+        return jsonify({"status": "uploaded", "file": filename})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # -------- SERVE SCREENSHOT --------
@@ -150,8 +165,23 @@ def get_blocked():
     return jsonify(blocked_sites)
 
 
-# ---------- MAIN ----------
-import os
+# -------- CLEAR DATA (ADMIN) --------
+@app.route("/admin/clear", methods=["POST"])
+def clear_data():
+    key = request.headers.get("X-Admin-Key")
 
+    if key != "admin123":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    conn = sqlite3.connect("logs.db")
+    c = conn.cursor()
+    c.execute("DELETE FROM logs")
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status": "cleared"})
+
+
+# ---------- MAIN ----------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
