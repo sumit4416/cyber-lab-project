@@ -3,1191 +3,697 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CyberLab Pro — AI Monitor v6.1</title>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+<title>Cyber Lab — Super Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-:root{
-  --bg:#020408;--panel:#0a1520;--cyan:#00f5ff;--green:#00ff88;
-  --red:#ff2d55;--yellow:#ffd60a;--purple:#bf5af2;--orange:#ff9f0a;
-  --text:#c8e8f0;--dim:#4a6a7a;--glow:0 0 20px #00f5ff44;--border:#0ff2;
-}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;overflow-x:hidden;}
-body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,245,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,.025) 1px,transparent 1px);background-size:50px 50px;pointer-events:none;z-index:0;}
-.wrapper{position:relative;z-index:2;}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── HEADER ── */
-header{background:linear-gradient(135deg,#030d14,#060f1a,#030d14);border-bottom:1px solid #00f5ff33;padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 40px #00f5ff15;position:sticky;top:0;z-index:100;}
-.logo{display:flex;align-items:center;gap:14px;}
-.logo-hex{width:42px;height:42px;position:relative;display:flex;align-items:center;justify-content:center;}
-.logo-hex svg{position:absolute;inset:0;animation:spinHex 8s linear infinite;}
-@keyframes spinHex{to{transform:rotate(360deg);}}
-.logo-hex-inner{font-size:16px;z-index:1;}
-.logo-text{font-family:'Orbitron',monospace;font-size:18px;font-weight:900;letter-spacing:4px;color:var(--cyan);text-shadow:0 0 30px #00f5ff88;}
-.logo-sub{font-size:9px;color:var(--dim);letter-spacing:5px;font-family:'Share Tech Mono',monospace;margin-top:3px;}
-.hc-pill{padding:4px 14px;border-radius:20px;border:1px solid #0ff2;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);background:#060d14;}
-.hc-pill.live{border-color:#00ff8844;color:var(--green);}
-.hc-pill.sse-ok{border-color:#00f5ff55;color:var(--cyan);}
-.hc-pill.sse-err{border-color:#ff2d5555;color:var(--red);}
-.header-center{display:flex;gap:6px;}
-.header-right{display:flex;align-items:center;gap:20px;}
-.status-dot{display:flex;align-items:center;gap:7px;font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--green);}
-.dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 10px var(--green);animation:blink 1.5s infinite;}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-.clock{font-family:'Orbitron',monospace;font-size:15px;color:var(--cyan);letter-spacing:3px;}
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    min-height: 100vh;
+  }
 
-/* ── TICKER ── */
-.ticker{background:linear-gradient(90deg,#020408,#0a1a28,#020408);border-bottom:1px solid #0ff1;padding:6px 0;overflow:hidden;white-space:nowrap;}
-.ticker-inner{display:inline-block;animation:tick 45s linear infinite;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--cyan);opacity:.5;}
-@keyframes tick{0%{transform:translateX(100vw)}100%{transform:translateX(-100%)}}
+  /* ---- HEADER ---- */
+  header {
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
 
-/* ── NAV ── */
-.nav-tabs{display:flex;padding:0 24px;background:#030a12;border-bottom:1px solid #0ff1;gap:2px;}
-.nav-tab{padding:13px 22px;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;user-select:none;white-space:nowrap;}
-.nav-tab:hover{color:var(--text);}
-.nav-tab.active{color:var(--cyan);border-bottom-color:var(--cyan);text-shadow:0 0 15px var(--cyan);}
-.tab-content{display:none;}
-.tab-content.active{display:block;}
+  header h1 {
+    font-size: 1.2rem;
+    color: #58a6ff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 
-/* ── STATS BAR ── */
-.stats-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;padding:18px 24px 0;}
-.stat-card{background:linear-gradient(145deg,#0a1520,#06101a);border:1px solid #0ff2;border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;transition:all .3s;}
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:12px 12px 0 0;}
-.sc-c::before{background:linear-gradient(90deg,transparent,var(--cyan),transparent);}
-.sc-g::before{background:linear-gradient(90deg,transparent,var(--green),transparent);}
-.sc-r::before{background:linear-gradient(90deg,transparent,var(--red),transparent);}
-.sc-o::before{background:linear-gradient(90deg,transparent,var(--orange),transparent);}
-.sc-s::before{background:linear-gradient(90deg,transparent,#0af,transparent);}
-.sc-p::before{background:linear-gradient(90deg,transparent,var(--purple),transparent);}
-.stat-card:hover{transform:translateY(-3px);border-color:#0ff3;box-shadow:var(--glow);}
-.stat-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-bottom:6px;}
-.stat-value{font-family:'Orbitron',monospace;font-size:26px;font-weight:900;line-height:1;margin-bottom:4px;}
-.sc-c .stat-value{color:var(--cyan);text-shadow:0 0 20px var(--cyan);}
-.sc-g .stat-value{color:var(--green);text-shadow:0 0 20px var(--green);}
-.sc-r .stat-value{color:var(--red);text-shadow:0 0 20px var(--red);}
-.sc-o .stat-value{color:var(--orange);text-shadow:0 0 20px var(--orange);}
-.sc-s .stat-value{color:#0af;text-shadow:0 0 20px #0af;}
-.sc-p .stat-value{color:var(--purple);text-shadow:0 0 20px var(--purple);}
-.stat-change{font-size:10px;font-family:'Share Tech Mono',monospace;color:var(--dim);}
-.stat-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:28px;opacity:.08;}
+  .live-badge {
+    background: #238636;
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+    animation: pulse 2s infinite;
+  }
 
-/* ── SSE BANNER ── */
-.sse-banner{display:flex;align-items:center;gap:10px;padding:7px 24px;font-family:'Share Tech Mono',monospace;font-size:11px;background:#060d14;border-bottom:1px solid #0ff1;}
-.sse-banner.ok{color:var(--green);}
-.sse-banner.err{color:var(--yellow);}
-.sse-banner.offline{color:var(--red);}
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
 
-/* ── PANEL BASE ── */
-.panel{background:linear-gradient(145deg,#0a1520,#06101a);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-.panel-header{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:#06101a;}
-.panel-title{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:3px;color:var(--cyan);}
+  .server-url-bar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
 
-/* ── MONITOR TAB ── */
-.main-grid{display:grid;grid-template-columns:1fr 300px;gap:16px;padding:16px 24px 24px;}
-.search-wrap{position:relative;display:flex;align-items:center;gap:8px;}
-.search-wrap input{background:#060d14;border:1px solid #0ff3;border-radius:8px;padding:7px 14px 7px 32px;color:var(--cyan);font-family:'Share Tech Mono',monospace;font-size:12px;width:200px;outline:none;}
-.search-wrap input:focus{border-color:var(--cyan);box-shadow:var(--glow);}
-.search-wrap input::placeholder{color:var(--dim);}
-.search-icon{position:absolute;left:10px;color:var(--dim);font-size:12px;}
-.filter-btn{background:#060d14;border:1px solid #0ff2;border-radius:6px;padding:6px 11px;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:10px;cursor:pointer;transition:all .2s;}
-.filter-btn:hover,.filter-btn.active{border-color:var(--cyan);color:var(--cyan);box-shadow:var(--glow);}
-.table-wrap{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;}
-thead th{padding:10px 14px;background:#040b12;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--dim);border-bottom:1px solid #0ff2;text-align:left;white-space:nowrap;}
-tbody tr{border-bottom:1px solid #0ff1;transition:all .2s;}
-tbody tr:hover{background:#0a1e2e;}
-td{padding:10px 14px;font-size:13px;vertical-align:middle;}
-.user-cell{display:flex;align-items:center;gap:9px;}
-.avatar{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'Orbitron',monospace;flex-shrink:0;}
-.window-cell{color:var(--cyan);font-family:'Share Tech Mono',monospace;font-size:11px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.time-cell{color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:11px;white-space:nowrap;}
-.alert-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:4px;font-size:10px;font-family:'Share Tech Mono',monospace;}
-.badge-ok{background:#00ff8811;border:1px solid #00ff8844;color:var(--green);}
-.badge-warn{background:#ffd60a11;border:1px solid #ffd60a44;color:var(--yellow);}
-.badge-susp{background:#bf5af211;border:1px solid #bf5af244;color:var(--purple);}
-.badge-crit{background:#ff2d5511;border:1px solid #ff2d5544;color:var(--red);animation:pr 2s infinite;}
-@keyframes pr{0%,100%{box-shadow:none}50%{box-shadow:0 0 12px #ff2d5544}}
-.btn-ss{background:#060d14;border:1px solid #0af3;border-radius:5px;padding:4px 10px;color:#0af;font-family:'Share Tech Mono',monospace;font-size:10px;cursor:pointer;transition:all .2s;}
-.btn-ss:hover{border-color:#0af;box-shadow:0 0 10px #0af3;}
+  .server-url-bar input {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 6px 12px;
+    border-radius: 6px;
+    width: 280px;
+    font-size: 0.85rem;
+  }
 
-/* ── SIDEBAR ── */
-.sidebar{display:flex;flex-direction:column;gap:14px;}
-.ai-panel{background:linear-gradient(145deg,#0a1520,#06101a);border:1px solid #bf5af233;border-radius:12px;overflow:hidden;}
-.ai-header{padding:13px 18px;border-bottom:1px solid #bf5af222;background:#080d1a;display:flex;align-items:center;gap:9px;}
-.ai-dot{width:8px;height:8px;background:var(--purple);border-radius:50%;box-shadow:0 0 10px var(--purple);animation:blink 1.5s infinite;}
-.ai-title{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;color:var(--purple);}
-.ai-body{padding:14px;}
-.ai-response{background:#040b12;border:1px solid #bf5af222;border-radius:8px;padding:12px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text);min-height:90px;max-height:150px;overflow-y:auto;line-height:1.7;}
-.ai-input-row{display:flex;gap:7px;margin-top:9px;}
-.ai-input{flex:1;background:#040b12;border:1px solid #bf5af233;border-radius:8px;padding:8px 12px;color:var(--purple);font-family:'Share Tech Mono',monospace;font-size:11px;outline:none;}
-.ai-input::placeholder{color:#bf5af266;}
-.ai-input:focus{border-color:var(--purple);box-shadow:0 0 15px #bf5af222;}
-.ai-send{background:linear-gradient(135deg,#bf5af2,#9b4dd6);border:none;border-radius:8px;padding:8px 13px;color:#fff;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:1px;cursor:pointer;}
-.ai-send:disabled{opacity:.5;cursor:not-allowed;}
-.ai-typing{display:none;align-items:center;gap:6px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--purple);margin-top:6px;}
-.ai-typing.active{display:flex;}
-.typing-dots span{width:4px;height:4px;background:var(--purple);border-radius:50%;display:inline-block;animation:tb 1.4s infinite ease-in-out;margin:0 1px;}
-.typing-dots span:nth-child(2){animation-delay:.2s}.typing-dots span:nth-child(3){animation-delay:.4s}
-@keyframes tb{0%,80%,100%{transform:scale(.6);opacity:.3}40%{transform:scale(1);opacity:1}}
-.threat-panel{background:linear-gradient(145deg,#0a1520,#06101a);border:1px solid #0ff2;border-radius:12px;padding:14px 18px;}
-.threat-title{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;color:var(--cyan);margin-bottom:12px;}
-.threat-bar-wrap{margin-bottom:9px;}
-.threat-label{display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);margin-bottom:4px;}
-.threat-bar{height:5px;background:#060d14;border-radius:3px;overflow:hidden;border:1px solid #0ff2;}
-.threat-fill{height:100%;border-radius:3px;transition:width 1s;}
+  .btn {
+    background: #238636;
+    color: #fff;
+    border: none;
+    padding: 7px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+  }
 
-/* ── SCREENSHOTS TAB ── */
-.ss-layout{padding:16px 24px 24px;display:grid;grid-template-columns:260px 1fr;gap:16px;}
-.ss-panel{background:linear-gradient(145deg,#0a1520,#06101a);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-.ss-panel-header{padding:13px 16px;border-bottom:1px solid var(--border);background:#06101a;display:flex;align-items:center;justify-content:space-between;}
-.ss-panel-title{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;color:var(--cyan);}
-.ss-body{padding:12px;}
-.ss-sidebar{display:flex;flex-direction:column;gap:12px;}
-.ss-user-list{display:flex;flex-direction:column;gap:6px;}
-.ss-user-item{background:#060d14;border:1px solid #0ff2;border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:space-between;}
-.ss-user-item:hover{border-color:#0ff4;background:#0a1520;}
-.ss-user-item.active{border-color:var(--cyan);background:#0a1e30;box-shadow:var(--glow);}
-.ss-user-left{display:flex;align-items:center;gap:9px;}
-.ss-avatar{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'Orbitron',monospace;flex-shrink:0;}
-.ss-uname{font-size:13px;font-weight:600;color:var(--text);}
-.ss-uip{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);}
-.ss-count-badge{background:#0af1;border:1px solid #0af4;border-radius:4px;padding:2px 8px;font-family:'Share Tech Mono',monospace;font-size:10px;color:#0af;}
-.ss-online-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green);animation:blink 2s infinite;}
-.ss-offline-dot{width:7px;height:7px;border-radius:50%;background:var(--dim);}
-.btn-capture{width:100%;background:linear-gradient(135deg,#0a2a3a,#061a2a);border:1px solid #0af4;border-radius:8px;padding:10px;color:#0af;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;transition:all .2s;}
-.btn-capture:hover{box-shadow:0 0 20px #0af3;}
-.btn-capture:disabled{opacity:.4;cursor:not-allowed;}
-.btn-ghost{background:#060d14;border:1px solid #0ff3;border-radius:8px;padding:8px 14px;color:var(--green);font-family:'Orbitron',monospace;font-size:9px;cursor:pointer;transition:all .2s;}
-.btn-ghost:hover{border-color:var(--green);box-shadow:0 0 12px #00ff8833;}
-.ss-main{display:flex;flex-direction:column;gap:14px;}
+  .btn:hover { background: #2ea043; }
+  .btn.danger { background: #b91c1c; }
+  .btn.danger:hover { background: #dc2626; }
+  .btn.secondary { background: #30363d; }
+  .btn.secondary:hover { background: #3d444e; }
 
-/* ── VIEWER — crisp, full resolution ── */
-.ss-viewer{background:#0a1520;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-.ss-viewer-header{padding:13px 18px;border-bottom:1px solid var(--border);background:#06101a;display:flex;align-items:center;justify-content:space-between;}
-.ss-viewer-title{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:3px;color:var(--cyan);display:flex;align-items:center;gap:10px;}
-.ss-viewer-meta{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);display:flex;align-items:center;gap:12px;}
-.ss-img-area{
-  position:relative;
-  min-height:420px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#010508;
-  overflow:auto;
-}
-.ss-img-area img{
-  max-width:100%;
-  height:auto;
-  max-height:580px;
-  width:auto;
-  object-fit:contain;   /* no crop, full image */
-  display:block;
-}
-.ss-placeholder{text-align:center;color:var(--dim);font-family:'Share Tech Mono',monospace;}
-.ss-placeholder-icon{font-size:52px;margin-bottom:14px;opacity:.2;}
-.ss-placeholder-text{font-size:12px;letter-spacing:2px;opacity:.5;}
-.live-badge{display:inline-flex;align-items:center;gap:5px;background:#00ff8811;border:1px solid #00ff8844;border-radius:4px;padding:3px 9px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--green);}
-.live-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink .8s infinite;}
-.ss-loading{position:absolute;inset:0;background:#020810cc;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:10;}
-.ss-loading-ring{width:48px;height:48px;border:2px solid #0ff2;border-top-color:var(--cyan);border-radius:50%;animation:spin 1s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.ss-loading-text{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--cyan);letter-spacing:2px;}
-.ss-ctrl-btn{background:#060d14;border:1px solid #0ff2;border-radius:6px;padding:5px 11px;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;transition:all .2s;}
-.ss-ctrl-btn:hover{border-color:var(--cyan);color:var(--cyan);}
-.ss-download-btn{background:linear-gradient(135deg,#0a2a3a,#061a2a);border:1px solid #0af3;border-radius:6px;padding:5px 13px;color:#0af;font-family:'Share Tech Mono',monospace;font-size:10px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;}
-.ss-download-btn:hover{box-shadow:0 0 12px #0af3;}
+  /* ---- TABS ---- */
+  .tabs {
+    display: flex;
+    gap: 0;
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 0 24px;
+  }
 
-/* ── THUMBNAILS — full image, no crop ── */
-.ss-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
-.ss-thumb{background:#060d14;border:1px solid #0ff2;border-radius:8px;overflow:hidden;cursor:pointer;transition:all .2s;position:relative;}
-.ss-thumb:hover{border-color:var(--cyan);box-shadow:var(--glow);transform:translateY(-2px);}
-.ss-thumb.active-thumb{border-color:var(--cyan);box-shadow:0 0 20px #00f5ff33;}
-.ss-thumb-imgwrap{
-  width:100%;height:130px;
-  display:flex;align-items:center;justify-content:center;
-  background:#010508;overflow:hidden;
-}
-.ss-thumb-imgwrap img{
-  max-width:100%;max-height:130px;
-  width:auto;height:auto;
-  object-fit:contain;   /* full image visible, no crop */
-  display:block;
-  filter:brightness(.92);transition:filter .2s;
-}
-.ss-thumb:hover .ss-thumb-imgwrap img{filter:brightness(1);}
-.ss-thumb-info{padding:8px 10px;background:#030a12;}
-.ss-thumb-user{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--cyan);}
-.ss-thumb-time{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);margin-top:2px;}
-.ss-thumb-del{position:absolute;top:6px;right:6px;background:#ff2d5588;border:none;border-radius:4px;width:22px;height:22px;color:#fff;cursor:pointer;font-size:11px;display:none;align-items:center;justify-content:center;}
-.ss-thumb:hover .ss-thumb-del{display:flex;}
-.ss-thumb-del:hover{background:var(--red);}
-.ss-empty{text-align:center;padding:50px 20px;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:12px;grid-column:1/-1;}
-.ss-empty-icon{font-size:40px;margin-bottom:10px;opacity:.2;}
+  .tab {
+    padding: 12px 20px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    color: #8b949e;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
 
-/* ── WEBSITE CONTROL ── */
-.wc-layout{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px 24px 24px;}
-.wc-panel{background:linear-gradient(145deg,#0a1520,#06101a);border:1px solid #0ff2;border-radius:12px;overflow:hidden;}
-.wc-header{padding:13px 18px;border-bottom:1px solid #0ff2;background:#06101a;display:flex;align-items:center;justify-content:space-between;}
-.wc-title{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:3px;color:var(--cyan);}
-.wc-body{padding:16px 18px;}
-.add-row{display:flex;gap:8px;margin-bottom:14px;}
-.site-input{flex:1;background:#060d14;border:1px solid #0ff3;border-radius:8px;padding:9px 14px;color:var(--cyan);font-family:'Share Tech Mono',monospace;font-size:12px;outline:none;}
-.site-input:focus{border-color:var(--cyan);box-shadow:var(--glow);}
-.site-input::placeholder{color:var(--dim);}
-.btn-block{background:linear-gradient(135deg,#ff2d55,#c0213f);border:none;border-radius:8px;padding:9px 16px;color:#fff;font-family:'Orbitron',monospace;font-size:9px;cursor:pointer;}
-.scope-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px;}
-.scope-chip{padding:5px 12px;border-radius:20px;font-family:'Share Tech Mono',monospace;font-size:10px;cursor:pointer;transition:all .2s;border:1px solid #0ff2;color:var(--dim);background:#060d14;white-space:nowrap;}
-.scope-chip.active{border-color:var(--cyan);color:var(--cyan);box-shadow:var(--glow);}
-.blocked-list{display:flex;flex-direction:column;gap:7px;max-height:340px;overflow-y:auto;}
-.blocked-item{background:#0d0510;border:1px solid #ff2d5533;border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;}
-.b-left{display:flex;align-items:center;gap:10px;}
-.b-icon{width:22px;height:22px;border-radius:4px;background:#ff2d5522;border:1px solid #ff2d5544;display:flex;align-items:center;justify-content:center;font-size:11px;}
-.b-domain{font-family:'Share Tech Mono',monospace;font-size:12px;color:#ff6b80;}
-.b-meta{font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace;margin-top:2px;}
-.b-scope{font-size:9px;color:var(--dim);font-family:'Share Tech Mono',monospace;padding:2px 8px;background:#ffffff08;border:1px solid #ffffff11;border-radius:4px;}
-.btn-unblock{background:#060d14;border:1px solid #00ff8833;border-radius:6px;padding:5px 12px;color:var(--green);font-family:'Share Tech Mono',monospace;font-size:10px;cursor:pointer;}
-.preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.preset-btn{background:#060d14;border:1px solid #0ff3;border-radius:8px;padding:9px 12px;color:var(--cyan);font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;transition:all .2s;text-align:left;}
-.preset-btn:hover{border-color:var(--cyan);box-shadow:var(--glow);}
-.preset-btn.danger{border-color:#ff2d5533;color:var(--red);}
+  .tab.active {
+    color: #58a6ff;
+    border-bottom-color: #58a6ff;
+  }
 
-/* ── CLIENTS TAB ── */
-.client-list{display:flex;flex-direction:column;gap:10px;}
-.client-item{background:#060d14;border:1px solid #0ff2;border-radius:12px;padding:14px 18px;transition:all .2s;}
-.client-item:hover{border-color:#0ff4;background:#0a1520;}
-.client-item.is-online{border-color:#00ff8822;}
-.c-top{display:flex;align-items:center;justify-content:space-between;}
-.c-left{display:flex;align-items:center;gap:12px;}
-.c-avatar{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:12px;font-weight:700;}
-.c-name{font-size:15px;font-weight:700;color:var(--text);}
-.c-sub{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);margin-top:2px;}
-.c-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
-.c-status{display:flex;align-items:center;gap:6px;font-family:'Share Tech Mono',monospace;font-size:10px;}
-.c-dot{width:8px;height:8px;border-radius:50%;}
-.c-dot.online{background:var(--green);box-shadow:0 0 7px var(--green);animation:blink 2s infinite;}
-.c-dot.offline{background:var(--dim);}
-.c-window{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--cyan);margin-top:8px;padding:6px 10px;background:#040b12;border-radius:6px;border-left:2px solid var(--cyan);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.c-window.hidden{display:none;}
-.alert-strip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:10px;font-family:'Share Tech Mono',monospace;}
-.as-crit{background:#ff2d5511;border:1px solid #ff2d5544;color:var(--red);}
-.as-warn{background:#ffd60a11;border:1px solid #ffd60a44;color:var(--yellow);}
-.as-susp{background:#bf5af211;border:1px solid #bf5af244;color:var(--purple);}
-.btn-target{background:#060d14;border:1px solid #0ff3;border-radius:6px;padding:5px 11px;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:10px;cursor:pointer;transition:all .2s;}
-.btn-target:hover{border-color:var(--cyan);color:var(--cyan);}
-.btn-ss-client{background:#060d14;border:1px solid #0af3;border-radius:6px;padding:5px 11px;color:#0af;font-family:'Share Tech Mono',monospace;font-size:10px;cursor:pointer;transition:all .2s;}
-.btn-ss-client:hover{border-color:#0af;box-shadow:0 0 10px #0af3;}
-.blocked-count{font-size:10px;color:var(--red);font-family:'Share Tech Mono',monospace;background:#ff2d5511;border:1px solid #ff2d5533;border-radius:4px;padding:2px 8px;}
+  /* ---- MAIN ---- */
+  main { padding: 24px; }
 
-/* ── CMD LOG ── */
-.cmd-log{background:#040b12;border:1px solid #0ff2;border-radius:8px;padding:12px;max-height:220px;overflow-y:auto;font-family:'Share Tech Mono',monospace;font-size:11px;line-height:2;}
-.cmd-entry{display:flex;gap:10px;}
-.cmd-ts{color:var(--dim);flex-shrink:0;}
-.t-ok{color:var(--green)}.t-err{color:var(--red)}.t-info{color:var(--cyan)}.t-warn{color:var(--yellow)}
+  .page { display: none; }
+  .page.active { display: block; }
 
-/* ── MODAL ── */
-.modal-overlay{position:fixed;inset:0;background:#000b;z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
-.modal-overlay.show{display:flex;}
-.modal-box{background:#0a1520;border:1px solid var(--cyan);border-radius:14px;overflow:hidden;max-width:95vw;max-height:95vh;display:flex;flex-direction:column;box-shadow:0 0 60px #00f5ff22;}
-.modal-header{padding:14px 20px;background:#06101a;border-bottom:1px solid #0ff2;display:flex;align-items:center;justify-content:space-between;}
-.modal-title{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:3px;color:var(--cyan);}
-.modal-close{background:#060d14;border:1px solid #ff2d5533;border-radius:6px;padding:5px 12px;color:var(--red);font-family:'Share Tech Mono',monospace;font-size:11px;cursor:pointer;}
-.modal-body{padding:16px;overflow:auto;display:flex;align-items:center;justify-content:center;background:#010508;}
-.modal-body img{max-width:100%;max-height:85vh;width:auto;height:auto;object-fit:contain;border-radius:6px;}
+  /* ---- STATS ---- */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
 
-/* ── TOAST ── */
-#toast{position:fixed;bottom:28px;right:28px;z-index:999;background:#0a1a2a;border:1px solid var(--cyan);border-radius:10px;padding:11px 18px;font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--cyan);transform:translateY(80px);opacity:0;transition:all .4s cubic-bezier(.16,1,.3,1);display:flex;align-items:center;gap:9px;}
-#toast.show{transform:translateY(0);opacity:1;}
-#toast.error{border-color:var(--red);color:var(--red);}
-#toast.success{border-color:var(--green);color:var(--green);}
+  .stat-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+  }
 
-/* ── EMPTY STATE ── */
-.empty-state{text-align:center;padding:60px 20px;color:var(--dim);font-family:'Share Tech Mono',monospace;}
-.empty-icon{font-size:40px;margin-bottom:12px;opacity:.2;}
-.empty-text{font-size:12px;letter-spacing:2px;margin-bottom:6px;}
-.empty-sub{font-size:10px;opacity:.5;margin-top:6px;}
+  .stat-card .value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #58a6ff;
+  }
 
-footer{padding:10px 24px;border-top:1px solid #0ff1;display:flex;justify-content:space-between;align-items:center;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);background:#030810;}
-::-webkit-scrollbar{width:5px;height:5px;}
-::-webkit-scrollbar-track{background:#040b12;}
-::-webkit-scrollbar-thumb{background:#0ff3;border-radius:3px;}
-@keyframes ssFlash{0%{box-shadow:0 0 0 0 #00ff8888}70%{box-shadow:0 0 0 12px #00ff8800}100%{box-shadow:0 0 0 0 #00ff8800}}
-.ss-flash{animation:ssFlash .8s ease-out;}
-@keyframes fi{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-.new-row{animation:fi .4s ease;}
+  .stat-card .label {
+    font-size: 0.8rem;
+    color: #8b949e;
+    margin-top: 4px;
+  }
+
+  .stat-card.alert .value { color: #f85149; }
+  .stat-card.active .value { color: #3fb950; }
+
+  /* ---- TABLE ---- */
+  .table-wrap {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .table-toolbar {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #30363d;
+    flex-wrap: wrap;
+  }
+
+  .table-toolbar h3 { font-size: 0.95rem; color: #e6edf3; flex: 1; }
+
+  .search-box {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    width: 220px;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  th {
+    background: #1c2128;
+    color: #8b949e;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 10px 14px;
+    text-align: left;
+  }
+
+  td {
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    border-bottom: 1px solid #21262d;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tr:hover td { background: #1c2128; }
+
+  .badge-alert {
+    background: #b91c1c22;
+    color: #f85149;
+    border: 1px solid #f8514944;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+  }
+
+  .badge-ok {
+    background: #23863622;
+    color: #3fb950;
+    border: 1px solid #3fb95044;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+  }
+
+  /* ---- SCREENSHOTS GRID ---- */
+  .screenshots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+
+  .screenshot-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .screenshot-card img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .screenshot-card img:hover { opacity: 0.8; }
+
+  .screenshot-card .meta {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    color: #8b949e;
+  }
+
+  .screenshot-card .meta .user { color: #58a6ff; font-weight: 600; }
+
+  /* ---- CHART ---- */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .chart-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 20px;
+  }
+
+  .chart-card h3 { font-size: 0.9rem; color: #8b949e; margin-bottom: 16px; }
+
+  /* ---- MODAL ---- */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal-overlay img {
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 8px;
+    border: 1px solid #30363d;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #30363d;
+    border: none;
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+
+  /* ---- EMPTY STATE ---- */
+  .empty {
+    text-align: center;
+    color: #8b949e;
+    padding: 60px 20px;
+    font-size: 0.95rem;
+  }
+
+  .empty div { font-size: 2rem; margin-bottom: 12px; }
+
+  /* ---- FILTER ROW ---- */
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-row select {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+  }
+
+  #status-bar {
+    font-size: 0.8rem;
+    color: #8b949e;
+    padding: 8px 24px;
+    border-top: 1px solid #30363d;
+    text-align: right;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #161b22;
+  }
+
+  @media (max-width: 700px) {
+    .charts-grid { grid-template-columns: 1fr; }
+    .server-url-bar input { width: 180px; }
+  }
 </style>
 </head>
 <body>
-<div class="wrapper">
 
+<!-- HEADER -->
 <header>
-  <div class="logo">
-    <div class="logo-hex">
-      <svg viewBox="0 0 42 42" width="42" height="42">
-        <polygon points="21,2 38,11.5 38,30.5 21,40 4,30.5 4,11.5" fill="none" stroke="#00f5ff" stroke-width="1.5" stroke-dasharray="4 2" opacity=".6"/>
-      </svg>
-      <div class="logo-hex-inner">⬡</div>
-    </div>
-    <div>
-      <div class="logo-text">CYBERLAB PRO</div>
-      <div class="logo-sub">REAL-TIME AI MONITOR v6.1</div>
-    </div>
-  </div>
-  <div class="header-center">
-    <div class="hc-pill live">● LIVE</div>
-    <div class="hc-pill" id="sse-pill">SSE: CONNECTING</div>
-    <div class="hc-pill" id="agent-pill">AGENTS: 0</div>
-  </div>
-  <div class="header-right">
-    <div class="status-dot"><div class="dot"></div><span id="sys-status">CONNECTING</span></div>
-    <div class="clock" id="clock">00:00:00</div>
+  <h1>🛡️ Cyber Lab <span class="live-badge">LIVE</span></h1>
+  <div class="server-url-bar">
+    <input type="text" id="serverInput" placeholder="Server URL, e.g. https://cyber-lab-project-4.onrender.com">
+    <button class="btn" onclick="setServer()">Connect</button>
+    <button class="btn danger" onclick="confirmClear()">🗑 Clear Data</button>
   </div>
 </header>
 
-<div class="sse-banner" id="sse-banner">
-  <span id="sse-icon">⟳</span>
-  <span id="sse-text">Connecting to server...</span>
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="showTab('live')">📡 Live Activity</div>
+  <div class="tab" onclick="showTab('screenshots')">📸 Screenshots</div>
+  <div class="tab" onclick="showTab('analytics')">📊 Analytics</div>
 </div>
 
-<div class="ticker">
-  <span class="ticker-inner">⬡ CYBERLAB PRO v6.1 · REAL DATA ONLY · NO FAKE CLIENTS · SSE LIVE PIPELINE · SCREENSHOTS FROM REAL AGENTS · BLOCK RULES SYNC · AI THREAT DETECTION ACTIVE &nbsp;&nbsp;&nbsp;</span>
-</div>
+<!-- MAIN -->
+<main>
 
-<div class="nav-tabs">
-  <div class="nav-tab active" onclick="switchTab('monitor',this)">⬡ MONITOR</div>
-  <div class="nav-tab" onclick="switchTab('screenshots',this)">📸 SCREENSHOTS</div>
-  <div class="nav-tab" onclick="switchTab('control',this)">🚫 WEBSITE CONTROL</div>
-  <div class="nav-tab" onclick="switchTab('clients',this)">💻 CLIENT PCS</div>
-  <div class="nav-tab" onclick="switchTab('cmdlog',this)">📡 COMMAND LOG</div>
-</div>
-
-<div class="stats-row">
-  <div class="stat-card sc-g"><div class="stat-label">Online PCs</div><div class="stat-value" id="s-online">0</div><div class="stat-change">Connected now</div><div class="stat-icon">💻</div></div>
-  <div class="stat-card sc-c"><div class="stat-label">Total Logs</div><div class="stat-value" id="s-logs">0</div><div class="stat-change">Events captured</div><div class="stat-icon">📋</div></div>
-  <div class="stat-card sc-r"><div class="stat-label">Alerts</div><div class="stat-value" id="s-alerts">0</div><div class="stat-change">Require attention</div><div class="stat-icon">⚠</div></div>
-  <div class="stat-card sc-o"><div class="stat-label">Blocked Sites</div><div class="stat-value" id="s-blocked">0</div><div class="stat-change">Active rules</div><div class="stat-icon">🚫</div></div>
-  <div class="stat-card sc-s"><div class="stat-label">Screenshots</div><div class="stat-value" id="s-ss">0</div><div class="stat-change">Captured today</div><div class="stat-icon">📸</div></div>
-  <div class="stat-card sc-p"><div class="stat-label">AI Score</div><div class="stat-value" id="s-ai" style="font-size:18px">—</div><div class="stat-change">Threat level</div><div class="stat-icon">🤖</div></div>
-</div>
-
-<!-- ══ MONITOR ══ -->
-<div class="tab-content active" id="tab-monitor">
-  <div class="main-grid">
-    <div class="panel">
-      <div class="panel-header">
-        <div class="panel-title">⬡ LIVE ACTIVITY</div>
-        <div class="search-wrap">
-          <span class="search-icon">🔍</span>
-          <input type="text" id="search" placeholder="Search PC, window...">
-          <button class="filter-btn active" onclick="setFilter('all',this)">ALL</button>
-          <button class="filter-btn" onclick="setFilter('alert',this)">ALERTS</button>
-          <button class="filter-btn" onclick="setFilter('ok',this)">CLEAN</button>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>PC / USER</th><th>ACTIVE WINDOW</th><th>TIME</th><th>THREAT</th><th>SCREENSHOT</th></tr></thead>
-          <tbody id="data"></tbody>
-        </table>
-      </div>
+  <!-- LIVE ACTIVITY -->
+  <div class="page active" id="page-live">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="value" id="stat-total">—</div><div class="label">Total Events</div></div>
+      <div class="stat-card alert"><div class="value" id="stat-alerts">—</div><div class="label">⚠ Alerts</div></div>
+      <div class="stat-card active"><div class="value" id="stat-users">—</div><div class="label">Active PCs</div></div>
+      <div class="stat-card"><div class="value" id="stat-rate">—</div><div class="label">Events / min</div></div>
     </div>
-    <div class="sidebar">
-      <div class="ai-panel">
-        <div class="ai-header"><div class="ai-dot"></div><div class="ai-title">AI ANALYST</div></div>
-        <div class="ai-body">
-          <div class="ai-response" id="ai-response"><span style="color:#bf5af2bb;font-size:10px;">◈ AI ANALYST READY</span><br><br>Ask about activity, threats, or patterns.</div>
-          <div class="ai-typing" id="ai-typing"><div class="typing-dots"><span></span><span></span><span></span></div><span>Analyzing...</span></div>
-          <div class="ai-input-row">
-            <input class="ai-input" id="ai-input" placeholder="Ask AI..." onkeydown="if(event.key==='Enter')sendAI()">
-            <button class="ai-send" id="ai-send" onclick="sendAI()">ASK</button>
-          </div>
+
+    <div class="table-wrap">
+      <div class="table-toolbar">
+        <h3>Activity Log</h3>
+        <div class="filter-row">
+          <input class="search-box" type="text" id="searchBox" placeholder="Search window / user..." oninput="renderTable()">
+          <select id="filterAlert" onchange="renderTable()">
+            <option value="">All events</option>
+            <option value="alert">Alerts only</option>
+          </select>
+          <select id="filterUser" onchange="renderTable()">
+            <option value="">All PCs</option>
+          </select>
         </div>
       </div>
-      <div class="threat-panel">
-        <div class="threat-title">⬡ THREAT VECTORS</div>
-        <div id="threat-meters"></div>
-      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>PC / User</th>
+            <th>Active Window</th>
+            <th>Status</th>
+            <th>Screenshot</th>
+          </tr>
+        </thead>
+        <tbody id="logTable"></tbody>
+      </table>
     </div>
   </div>
-</div>
 
-<!-- ══ SCREENSHOTS ══ -->
-<div class="tab-content" id="tab-screenshots">
-  <div class="ss-layout">
-    <div class="ss-sidebar">
-      <div class="ss-panel">
-        <div class="ss-panel-header">
-          <div class="ss-panel-title">💻 SELECT PC</div>
-          <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);" id="ss-selected-label">None</span>
-        </div>
-        <div class="ss-body">
-          <div class="ss-user-list" id="ss-user-list">
-            <div class="empty-state" style="padding:20px 0;">
-              <div class="empty-icon">💻</div>
-              <div class="empty-text">No PCs online</div>
-              <div class="empty-sub">Run client.py on target PC</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="ss-panel">
-        <div class="ss-panel-header"><div class="ss-panel-title">⚡ ACTIONS</div></div>
-        <div class="ss-body" style="display:flex;flex-direction:column;gap:8px;">
-          <button class="btn-capture" id="btn-take-ss" onclick="requestScreenshot()" disabled>
-            📸 CAPTURE SCREENSHOT
-          </button>
-          <button class="btn-capture" style="border-color:#00ff8844;color:var(--green);" onclick="requestAllScreenshots()">
-            📸 CAPTURE ALL ONLINE PCs
-          </button>
-          <div style="display:flex;gap:8px;">
-            <button class="btn-ghost" style="flex:1;font-size:9px;" onclick="autoSS_toggle()" id="btn-autoss">▶ AUTO: OFF</button>
-            <button class="btn-ghost" style="flex:1;font-size:9px;color:var(--red);border-color:#ff2d5533;" onclick="clearAllScreenshots()">🗑 CLEAR</button>
-          </div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);padding:10px;background:#040b12;border-radius:6px;border:1px solid #00ff8833;line-height:1.9;">
-            <span style="color:var(--green);">◈ HOW IT WORKS:</span><br>
-            1. Run client.py on any PC<br>
-            2. PC appears here automatically<br>
-            3. Click CAPTURE → agent takes real screenshot<br>
-            4. <strong style="color:var(--cyan);">Image appears here via SSE instantly</strong>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="ss-main">
-      <div class="ss-viewer">
-        <div class="ss-viewer-header">
-          <div class="ss-viewer-title">
-            🖥️ LIVE VIEW
-            <span class="live-badge" id="ss-live-badge" style="display:none;"><div class="live-dot"></div>LIVE</span>
-          </div>
-          <div class="ss-viewer-meta">
-            <span id="ss-current-user" style="color:var(--cyan);">No PC selected</span>
-            <span id="ss-current-time"></span>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <button class="ss-ctrl-btn" onclick="zoomSS(-1)">−</button>
-              <span id="ss-zoom-label" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);min-width:35px;text-align:center;">100%</span>
-              <button class="ss-ctrl-btn" onclick="zoomSS(1)">+</button>
-              <button class="ss-ctrl-btn" onclick="fitSS()">FIT</button>
-              <button class="ss-download-btn" onclick="downloadCurrentSS()">⬇ SAVE</button>
-            </div>
-          </div>
-        </div>
-        <div class="ss-img-area" id="ss-img-area">
-          <div class="ss-placeholder">
-            <div class="ss-placeholder-icon">📸</div>
-            <div class="ss-placeholder-text">SELECT A PC AND CAPTURE</div>
-            <div style="margin-top:8px;font-size:10px;opacity:.35;">Run client.py on target PC first</div>
-          </div>
-        </div>
-      </div>
-      <div class="ss-panel">
-        <div class="ss-panel-header">
-          <div class="ss-panel-title">🗂 SCREENSHOT HISTORY</div>
-          <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);" id="ss-history-count">0 captures</span>
-        </div>
-        <div style="padding:14px;">
-          <div class="ss-grid" id="ss-grid">
-            <div class="ss-empty"><div class="ss-empty-icon">📷</div>No screenshots yet</div>
-          </div>
-        </div>
-      </div>
+  <!-- SCREENSHOTS -->
+  <div class="page" id="page-screenshots">
+    <div id="screenshotsGrid" class="screenshots-grid">
+      <div class="empty"><div>📸</div>No screenshots yet. Make sure pyautogui is installed on lab PCs.</div>
     </div>
   </div>
-</div>
 
-<!-- ══ WEBSITE CONTROL ══ -->
-<div class="tab-content" id="tab-control">
-  <div class="wc-layout">
-    <div class="wc-panel">
-      <div class="wc-header">
-        <div class="wc-title">🚫 BLOCK / UNBLOCK SITES</div>
-        <button class="btn-ghost" onclick="unblockAll()">UNBLOCK ALL</button>
+  <!-- ANALYTICS -->
+  <div class="page" id="page-analytics">
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Top Applications Used</h3>
+        <canvas id="barChart"></canvas>
       </div>
-      <div class="wc-body">
-        <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);margin-bottom:8px;">TARGET →</div>
-        <div class="scope-bar" id="scope-bar">
-          <div class="scope-chip active" onclick="setScope('all',this)">🌐 ALL PCs</div>
-        </div>
-        <div class="add-row">
-          <input class="site-input" id="block-input" placeholder="youtube.com / facebook.com ..." onkeydown="if(event.key==='Enter')blockSite()">
-          <button class="btn-block" onclick="blockSite()">🚫 BLOCK</button>
-        </div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);margin-bottom:10px;">BLOCKED [<span id="blocked-count">0</span>]</div>
-        <div class="blocked-list" id="blocked-list"><div class="empty-state" style="padding:20px 0;"><div class="empty-icon">✓</div>Nothing blocked</div></div>
+      <div class="chart-card">
+        <h3>PC Activity Share</h3>
+        <canvas id="pieChart"></canvas>
       </div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:14px;">
-      <div class="wc-panel">
-        <div class="wc-header"><div class="wc-title">⚡ QUICK PRESETS</div></div>
-        <div class="wc-body">
-          <div class="preset-grid">
-            <button class="preset-btn" onclick="blockPreset(['youtube.com','youtu.be'],'YouTube')">▶ YouTube</button>
-            <button class="preset-btn" onclick="blockPreset(['facebook.com','fb.com'],'Facebook')">👤 Facebook</button>
-            <button class="preset-btn" onclick="blockPreset(['instagram.com'],'Instagram')">📷 Instagram</button>
-            <button class="preset-btn" onclick="blockPreset(['twitter.com','x.com'],'Twitter/X')">✕ Twitter/X</button>
-            <button class="preset-btn" onclick="blockPreset(['tiktok.com'],'TikTok')">🎵 TikTok</button>
-            <button class="preset-btn" onclick="blockPreset(['reddit.com'],'Reddit')">📰 Reddit</button>
-            <button class="preset-btn" onclick="blockPreset(['whatsapp.com'],'WhatsApp')">💬 WhatsApp</button>
-            <button class="preset-btn" onclick="blockPreset(['netflix.com','primevideo.com'],'Streaming')">🎬 Streaming</button>
-            <button class="preset-btn danger" onclick="blockPreset(['thepiratebay.org','1337x.to'],'Torrents')">⚠ Torrents</button>
-            <button class="preset-btn danger" onclick="blockPreset(['casino.com','bet365.com'],'Gambling')">🎰 Gambling</button>
-          </div>
-        </div>
-      </div>
-      <div class="wc-panel">
-        <div class="wc-header"><div class="wc-title">📡 COMMAND STATUS</div></div>
-        <div class="wc-body"><div class="cmd-log" id="mini-cmdlog"><div class="cmd-entry"><span class="cmd-ts">--:--</span><span class="cmd-text t-info">◈ Waiting...</span></div></div></div>
-      </div>
+    <div class="chart-card">
+      <h3>Alert Events Over Time</h3>
+      <canvas id="alertChart"></canvas>
     </div>
   </div>
+
+</main>
+
+<!-- STATUS BAR -->
+<div id="status-bar">Not connected. Enter server URL above.</div>
+
+<!-- IMAGE MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal()">
+  <button class="modal-close" onclick="closeModal()">✕</button>
+  <img id="modalImg" src="" alt="screenshot">
 </div>
-
-<!-- ══ CLIENT PCS ══ -->
-<div class="tab-content" id="tab-clients">
-  <div style="padding:16px 24px 24px;">
-    <div class="wc-panel">
-      <div class="wc-header">
-        <div class="wc-title">💻 CONNECTED PCS <span id="clients-count" style="color:var(--green);margin-left:10px;font-size:10px;"></span></div>
-        <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);">Auto-updates every 5s via client.py</span>
-      </div>
-      <div style="padding:16px;"><div class="client-list" id="client-list">
-        <div class="empty-state">
-          <div class="empty-icon">💻</div>
-          <div class="empty-text">NO PCS CONNECTED</div>
-          <div class="empty-sub">Run client.py on any PC to see it appear here</div>
-        </div>
-      </div></div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ COMMAND LOG ══ -->
-<div class="tab-content" id="tab-cmdlog">
-  <div style="padding:16px 24px 24px;">
-    <div class="wc-panel">
-      <div class="wc-header">
-        <div class="wc-title">📡 COMMAND LOG</div>
-        <button class="btn-ghost" onclick="clearCmdLog()">CLEAR</button>
-      </div>
-      <div style="padding:16px;">
-        <div class="cmd-log" id="full-cmdlog" style="max-height:580px;">
-          <div class="cmd-entry"><span class="cmd-ts">--:--:--</span><span class="cmd-text t-info">◈ CyberLab Pro v6.1 initialized.</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL -->
-<div class="modal-overlay" id="ss-modal" onclick="closeSsModal(event)">
-  <div class="modal-box">
-    <div class="modal-header">
-      <div class="modal-title" id="modal-title">📸 SCREENSHOT</div>
-      <div style="display:flex;gap:8px;">
-        <button class="ss-download-btn" onclick="downloadCurrentSS()">⬇ DOWNLOAD</button>
-        <button class="modal-close" onclick="document.getElementById('ss-modal').classList.remove('show')">✕ CLOSE</button>
-      </div>
-    </div>
-    <div class="modal-body"><img id="modal-img" src="" alt="Screenshot"></div>
-  </div>
-</div>
-
-<div id="toast"><span id="toast-msg">Done</span></div>
-
-<footer>
-  <span>CYBERLAB PRO · v6.1 · REAL DATA ONLY</span>
-  <span id="footer-stats">ONLINE:0 | LOGS:0 | BLOCKED:0 | SS:0 | UPTIME:00:00</span>
-  <span id="footer-time">—</span>
-</footer>
 
 <script>
-// ════════════════════════════════════════════
-//  STATE — starts empty, fills from real data
-// ════════════════════════════════════════════
-let clients      = {};   // pc_id → client obj
-let logs         = [];   // activity log
-let screenshots  = [];
-let blockedSites = [];
-let cmdLogEntries= [];
-let activeFilter = 'all';
-let searchVal    = '';
-let selectedPC   = null;
-let currentViewSS= null;
-let ssZoom       = 100;
-let autoSSOn     = false;
-let autoSSInterval=null;
-let activeScope  = 'all';
-let startTime    = Date.now();
-let sseConn      = null;
-let sseOnline    = false;
+// ==========================================
+// CONFIG
+// ==========================================
+let SERVER = localStorage.getItem("cyberlab_server") || "";
+let allLogs = [];
+let barChart, pieChart, alertChart;
+let previousCount = 0;
 
-const AVATAR_COLORS=['#00f5ff','#00ff88','#ff2d55','#ffd60a','#bf5af2','#ff9f0a','#30d158','#5e5ce6'];
-const avatarMap  = {};
+document.getElementById("serverInput").value = SERVER;
 
-// ─── HELPERS ───
-function eh(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function getColor(id){if(!avatarMap[id])avatarMap[id]=AVATAR_COLORS[Object.keys(avatarMap).length%AVATAR_COLORS.length];return avatarMap[id];}
-function ts(){return new Date().toLocaleTimeString('en-GB',{hour12:false});}
+function setServer() {
+  SERVER = document.getElementById("serverInput").value.trim().replace(/\/$/, "");
+  localStorage.setItem("cyberlab_server", SERVER);
+  fetchAll();
+}
 
-// ─── CLOCK ───
-setInterval(()=>{
-  const now=new Date();
-  document.getElementById('clock').textContent=now.toLocaleTimeString('en-GB',{hour12:false});
-  const up=Math.floor((Date.now()-startTime)/1000),m=String(Math.floor(up/60)).padStart(2,'0'),s=String(up%60).padStart(2,'0');
-  document.getElementById('footer-time').textContent=now.toLocaleString('en-GB');
-  const online=Object.values(clients).filter(c=>c.online).length;
-  document.getElementById('footer-stats').textContent=`ONLINE:${online}|LOGS:${logs.length}|BLOCKED:${blockedSites.length}|SS:${screenshots.length}|UPTIME:${m}:${s}`;
-},1000);
-
-// ════ SSE ════
-function connectSSE(){
-  if(sseConn){sseConn.close();}
-  setSseStatus('connecting');
-  try{sseConn=new EventSource('/api/events');}
-  catch{setSseStatus('offline');setTimeout(connectSSE,5000);return;}
-
-  sseConn.onopen=()=>{setSseStatus('online');pushCmd('SSE connected','ok');};
-  sseConn.onerror=()=>{
-    setSseStatus('offline');sseConn.close();
-    pushCmd('SSE lost — reconnecting in 5s','warn');
-    setTimeout(connectSSE,5000);
-  };
-
-  // Init: get current state from server
-  sseConn.addEventListener('init',e=>{
-    const d=JSON.parse(e.data);
-    if(d.blocklist)blockedSites=d.blocklist;
-    renderBlockedList();
-
-    // Load clients from server
-    if(d.clients&&d.clients.length){
-      d.clients.forEach(c=>upsertClient(c));
-      renderAll();
-    }
-    if(d.logs){
-      d.logs.forEach(l=>logs.unshift(l));
-      renderTable();
-    }
-    pushCmd(`◈ Sync: ${Object.keys(clients).length} clients, ${blockedSites.length} rules`,'info');
-    updateStats();
+// ==========================================
+// TABS
+// ==========================================
+function showTab(name) {
+  document.querySelectorAll(".tab").forEach((t, i) => {
+    t.classList.toggle("active", ["live","screenshots","analytics"][i] === name);
   });
+  document.querySelectorAll(".page").forEach(p => {
+    p.classList.toggle("active", p.id === `page-${name}`);
+  });
+  if (name === "analytics") renderCharts();
+  if (name === "screenshots") renderScreenshots();
+}
 
-  // Real-time client heartbeat
-  sseConn.addEventListener('client_heartbeat',e=>{
-    const d=JSON.parse(e.data);
-    if(d.clients){
-      // Mark all offline first, then update with live data
-      Object.values(clients).forEach(c=>c.online=false);
-      d.clients.forEach(c=>upsertClient(c));
-      renderAll();
-      updateStats();
+// ==========================================
+// FETCH DATA
+// ==========================================
+async function fetchAll() {
+  if (!SERVER) {
+    setStatus("⚠ Enter server URL and click Connect");
+    return;
+  }
+  try {
+    const [logsRes, statsRes] = await Promise.all([
+      fetch(`${SERVER}/logs?limit=500`),
+      fetch(`${SERVER}/stats`)
+    ]);
+
+    allLogs = await logsRes.json();
+    const stats = await statsRes.json();
+
+    // Update stats cards
+    document.getElementById("stat-total").textContent = stats.total_logs.toLocaleString();
+    document.getElementById("stat-alerts").textContent = stats.total_alerts.toLocaleString();
+    document.getElementById("stat-users").textContent = stats.active_users;
+
+    // Events per minute estimate
+    if (allLogs.length > 1) {
+      const span = (new Date(allLogs[0].time) - new Date(allLogs[allLogs.length - 1].time)) / 60000;
+      document.getElementById("stat-rate").textContent = span > 0 ? (allLogs.length / span).toFixed(1) : "—";
     }
-    const online=Object.values(clients).filter(c=>c.online).length;
-    document.getElementById('agent-pill').textContent=`AGENTS: ${online} ONLINE`;
-  });
 
-  // New client connected first time
-  sseConn.addEventListener('client_connected',e=>{
-    const d=JSON.parse(e.data);
-    showToast(`🆕 New PC connected: ${d.pc}`,'success');
-    pushCmd(`🆕 NEW CLIENT: ${d.pc} (${d.ip})`,'ok');
-  });
+    // Populate PC filter
+    const users = [...new Set(allLogs.map(l => l.user))];
+    const sel = document.getElementById("filterUser");
+    const current = sel.value;
+    sel.innerHTML = '<option value="">All PCs</option>' + users.map(u => `<option value="${u}" ${u===current?"selected":""}>${u}</option>`).join("");
 
-  // Real activity log entry
-  sseConn.addEventListener('new_log',e=>{
-    const d=JSON.parse(e.data);
-    logs.unshift(d);
-    if(logs.length>500)logs=logs.slice(0,500);
+    // New activity notification
+    if (previousCount > 0 && allLogs.length > previousCount) {
+      const newAlerts = allLogs.slice(0, allLogs.length - previousCount).filter(l => l.alert);
+      if (newAlerts.length > 0) {
+        setStatus(`🚨 ${newAlerts.length} new alert(s) detected! — Last update: ${new Date().toLocaleTimeString()}`);
+      } else {
+        setStatus(`✅ Live — Last update: ${new Date().toLocaleTimeString()} — ${allLogs.length} events`);
+      }
+    } else {
+      setStatus(`✅ Connected to ${SERVER} — ${allLogs.length} events — Last update: ${new Date().toLocaleTimeString()}`);
+    }
+    previousCount = allLogs.length;
+
     renderTable();
-    updateStats();
-  });
+    if (document.getElementById("page-analytics").classList.contains("active")) renderCharts();
+    if (document.getElementById("page-screenshots").classList.contains("active")) renderScreenshots();
 
-  // Live screenshot from client
-  sseConn.addEventListener('screenshot_live',e=>{
-    const d=JSON.parse(e.data);
-    pushCmd(`✅ Screenshot from ${d.pc} (${Math.round(d.size/1024)}KB)`,'ok');
-    showToast(`📸 Screenshot: ${d.pc}`,'success');
-    addScreenshot(d.pc, 'data:image/png;base64,'+d.base64, d.ts);
-    const area=document.getElementById('ss-img-area');
-    area.classList.remove('ss-flash');void area.offsetWidth;area.classList.add('ss-flash');
-    document.getElementById('ss-live-badge').style.display='inline-flex';
-  });
-
-  sseConn.addEventListener('screenshot_requested',e=>{
-    const d=JSON.parse(e.data);
-    showSSLoading(d.pc);
-  });
-
-  sseConn.addEventListener('blocklist_update',e=>{
-    blockedSites=JSON.parse(e.data).blocklist||[];
-    renderBlockedList();
-    animNum('s-blocked',blockedSites.length);
-  });
-}
-
-function setSseStatus(state){
-  sseOnline=(state==='online');
-  const banner=document.getElementById('sse-banner');
-  const pill=document.getElementById('sse-pill');
-  const ico=document.getElementById('sse-icon');
-  const txt=document.getElementById('sse-text');
-  const sys=document.getElementById('sys-status');
-  if(state==='online'){
-    banner.className='sse-banner ok';ico.textContent='✓';
-    txt.textContent='SSE connected — real client data flowing in';
-    pill.className='hc-pill sse-ok';pill.textContent='SSE: LIVE';
-    sys.textContent='ONLINE';sys.style.color='var(--green)';
-  }else if(state==='connecting'){
-    banner.className='sse-banner err';ico.textContent='⟳';
-    txt.textContent='Connecting... make sure: node server.js is running';
-    pill.className='hc-pill';pill.textContent='SSE: CONNECTING';
-    sys.textContent='CONNECTING';sys.style.color='var(--yellow)';
-  }else{
-    banner.className='sse-banner offline';ico.textContent='⚠';
-    txt.textContent='SERVER OFFLINE — Start server: npm install && node server.js';
-    pill.className='hc-pill sse-err';pill.textContent='SSE: OFFLINE';
-    sys.textContent='OFFLINE';sys.style.color='var(--red)';
+  } catch(e) {
+    setStatus(`❌ Cannot connect to server: ${e.message}`);
   }
 }
 
-// ─── UPSERT CLIENT (from SSE data) ───
-function upsertClient(c){
-  // c = { pc, id, ip, user, os, online, activeWindow, alert }
-  const key = c.id || c.pc;
-  if(!key) return;
-  const existing = clients[key];
-  clients[key] = {
-    id:           key,
-    name:         c.pc || key,
-    ip:           c.ip || (existing && existing.ip) || '—',
-    user:         c.user || (existing && existing.user) || key,
-    os:           c.os || (existing && existing.os) || 'Unknown',
-    online:       c.online,
-    activeWindow: c.activeWindow || '',
-    alert:        c.alert || '',
-    lastSeen:     c.online ? Date.now() : (existing && existing.lastSeen)
-  };
-}
+// ==========================================
+// RENDER TABLE
+// ==========================================
+function renderTable() {
+  const search = document.getElementById("searchBox").value.toLowerCase();
+  const alertFilter = document.getElementById("filterAlert").value;
+  const userFilter = document.getElementById("filterUser").value;
 
-function renderAll(){
-  renderSSUserList();
-  renderClients();
-  renderScopeBar();
-  if(document.getElementById('tab-clients').classList.contains('active'))renderClients();
-}
+  let filtered = allLogs.filter(log => {
+    const matchSearch = !search || (log.window||"").toLowerCase().includes(search) || (log.user||"").toLowerCase().includes(search);
+    const matchAlert = !alertFilter || (alertFilter === "alert" && log.alert);
+    const matchUser = !userFilter || log.user === userFilter;
+    return matchSearch && matchAlert && matchUser;
+  });
 
-// ─── TABS ───
-function switchTab(id,el){
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+id).classList.add('active');
-  el.classList.add('active');
-  if(id==='clients')renderClients();
-  if(id==='control')renderScopeBar();
-  if(id==='cmdlog')renderCmdLogs();
-  if(id==='screenshots'){renderSSUserList();renderSSGrid();}
-}
-
-// ─── STATS ───
-function updateStats(){
-  const online=Object.values(clients).filter(c=>c.online).length;
-  const alerts=logs.filter(l=>l.alert).length;
-  const crits =logs.filter(l=>l.alert==='CRITICAL').length;
-  const score =crits>0?'HIGH':alerts>2?'MED':'LOW';
-  const sc    =crits>0?'var(--red)':alerts>2?'var(--yellow)':'var(--green)';
-  animNum('s-online', online);
-  animNum('s-logs',   logs.length);
-  animNum('s-alerts', alerts);
-  animNum('s-blocked',blockedSites.length);
-  animNum('s-ss',     screenshots.length);
-  const ai=document.getElementById('s-ai');
-  ai.textContent=score;ai.style.color=sc;
-  renderThreatMeters();
-}
-function animNum(id,target){
-  const el=document.getElementById(id);if(!el)return;
-  const cur=parseInt(el.textContent)||0;
-  if(cur===target)return;
-  const step=Math.ceil(Math.abs(target-cur)/8),dir=target>cur?1:-1;let v=cur;
-  const iv=setInterval(()=>{v+=dir*step;if((dir>0&&v>=target)||(dir<0&&v<=target)){v=target;clearInterval(iv);}el.textContent=v;},40);
-}
-
-// ─── TABLE ───
-function badgeHtml(a){
-  if(!a)return`<span class="alert-badge badge-ok">● CLEAN</span>`;
-  if(a==='CRITICAL')return`<span class="alert-badge badge-crit">⚠ CRITICAL</span>`;
-  if(a==='WARNING') return`<span class="alert-badge badge-warn">▲ WARNING</span>`;
-  return`<span class="alert-badge badge-susp">◈ SUSPICIOUS</span>`;
-}
-function renderTable(){
-  let d=logs;
-  if(searchVal)d=d.filter(l=>(l.user||'').toLowerCase().includes(searchVal)||(l.window||'').toLowerCase().includes(searchVal)||(l.pc||'').toLowerCase().includes(searchVal));
-  if(activeFilter==='alert')d=d.filter(l=>l.alert);
-  if(activeFilter==='ok')d=d.filter(l=>!l.alert);
-  if(!d.length){
-    document.getElementById('data').innerHTML=`<tr><td colspan="5"><div class="empty-state" style="padding:40px;"><div class="empty-icon">◈</div><div class="empty-text">NO LOGS YET</div><div class="empty-sub">Waiting for client.py activity...</div></div></td></tr>`;
+  const tbody = document.getElementById("logTable");
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#8b949e;padding:40px">No records found</td></tr>`;
     return;
   }
-  document.getElementById('data').innerHTML=d.slice(0,100).map(l=>{
-    const col=getColor(l.pc||l.user);
-    const name=l.pc||l.user||'unknown';
-    return`<tr class="new-row">
-      <td><div class="user-cell">
-        <div class="avatar" style="background:${col}22;border:1px solid ${col}55;color:${col};">${name.slice(0,2).toUpperCase()}</div>
-        <div><div class="user-name">${eh(name)}</div><div style="font-size:10px;color:var(--dim);font-family:'Share Tech Mono',monospace;">${eh(l.user||'')} · ${eh(l.ip||'')}</div></div>
-      </div></td>
-      <td><div class="window-cell" title="${eh(l.window)}">${eh(l.window)}</div></td>
-      <td><div class="time-cell">${eh(l.time)}</div></td>
-      <td>${badgeHtml(l.alert)}</td>
-      <td><button class="btn-ss" onclick="quickCapture('${eh(l.pc||l.user)}')">📸</button></td>
+
+  tbody.innerHTML = filtered.slice(0, 200).map(log => {
+    const timeStr = log.time ? new Date(log.time).toLocaleString() : "—";
+    const badge = log.alert
+      ? `<span class="badge-alert">${log.alert}</span>`
+      : `<span class="badge-ok">Normal</span>`;
+    const shot = log.screenshot
+      ? `<span style="color:#58a6ff;cursor:pointer;" onclick="openModal('${SERVER}/screenshots/${log.screenshot}')">View 📸</span>`
+      : `<span style="color:#30363d">—</span>`;
+    return `<tr>
+      <td style="white-space:nowrap;color:#8b949e">${timeStr}</td>
+      <td style="color:#58a6ff">${log.user || "—"}</td>
+      <td>${log.window || "—"}</td>
+      <td>${badge}</td>
+      <td>${shot}</td>
     </tr>`;
-  }).join('');
-}
-function setFilter(f,btn){activeFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderTable();}
-document.getElementById('search').addEventListener('input',function(){searchVal=this.value.toLowerCase().trim();renderTable();});
-
-// ─── THREAT METERS ───
-function renderThreatMeters(){
-  const al=logs.filter(l=>l.alert).length,tot=logs.length||1,cr=logs.filter(l=>l.alert==='CRITICAL').length;
-  const mx=[
-    {label:'Alert Rate',  val:Math.min(100,Math.round(al/tot*100)),color:'#ff2d55'},
-    {label:'Critical',    val:Math.min(100,cr*20),color:'#ff9f0a'},
-    {label:'Online PCs',  val:Math.min(100,Object.values(clients).filter(c=>c.online).length*15),color:'#00f5ff'},
-    {label:'Activity',    val:Math.min(100,Math.round(tot/3)),color:'#00ff88'},
-    {label:'Anomaly',     val:Math.min(100,Math.round(cr/Math.max(1,al)*100)),color:'#bf5af2'}
-  ];
-  document.getElementById('threat-meters').innerHTML=mx.map(m=>`
-    <div class="threat-bar-wrap">
-      <div class="threat-label"><span>${m.label}</span><span style="color:${m.color}">${m.val}%</span></div>
-      <div class="threat-bar"><div class="threat-fill" style="width:${m.val}%;background:linear-gradient(90deg,${m.color}44,${m.color})"></div></div>
-    </div>`).join('');
+  }).join("");
 }
 
-// ════ SCREENSHOT SYSTEM ════
-function renderSSUserList(){
-  const list=document.getElementById('ss-user-list');
-  const arr=Object.values(clients);
-  if(!arr.length){
-    list.innerHTML=`<div class="empty-state" style="padding:20px 0;"><div class="empty-icon">💻</div><div class="empty-text">No PCs online</div><div class="empty-sub">Run client.py to connect</div></div>`;
+// ==========================================
+// RENDER SCREENSHOTS
+// ==========================================
+function renderScreenshots() {
+  const withShots = allLogs.filter(l => l.screenshot);
+  const grid = document.getElementById("screenshotsGrid");
+
+  if (withShots.length === 0) {
+    grid.innerHTML = `<div class="empty"><div>📸</div>No screenshots yet.<br>Make sure <code>pyautogui</code> is installed on lab PCs.</div>`;
     return;
   }
-  list.innerHTML=arr.map(c=>{
-    const col=getColor(c.id);
-    const ssCount=screenshots.filter(s=>s.pcId===c.id).length;
-    return`<div class="ss-user-item ${selectedPC===c.id?'active':''}" onclick="selectPC('${c.id}')">
-      <div class="ss-user-left">
-        <div class="ss-avatar" style="background:${col}22;border:1px solid ${col}55;color:${col};">${c.name.slice(0,2).toUpperCase()}</div>
-        <div>
-          <div class="ss-uname">${eh(c.name)}</div>
-          <div class="ss-uip">${eh(c.ip)} · ${eh(c.user)}</div>
-        </div>
+
+  // Show latest screenshot per user + recent ones
+  const seen = new Set();
+  const shown = withShots.filter(l => {
+    if (!seen.has(l.user)) { seen.add(l.user); return true; }
+    return false;
+  }).concat(withShots.slice(0, 20)).filter((l, i, arr) =>
+    arr.findIndex(x => x.screenshot === l.screenshot) === i
+  ).slice(0, 24);
+
+  grid.innerHTML = shown.map(log => `
+    <div class="screenshot-card">
+      <img src="${SERVER}/screenshots/${log.screenshot}" alt="screenshot"
+           onerror="this.style.display='none'"
+           onclick="openModal('${SERVER}/screenshots/${log.screenshot}')">
+      <div class="meta">
+        <span class="user">🖥 ${log.user}</span><br>
+        ${log.time ? new Date(log.time).toLocaleString() : ""}<br>
+        ${log.alert ? `<span style="color:#f85149">${log.alert}</span>` : ""}
       </div>
-      <div style="display:flex;align-items:center;gap:7px;">
-        ${ssCount?`<span class="ss-count-badge">${ssCount}</span>`:''}
-        <div class="${c.online?'ss-online-dot':'ss-offline-dot'}" title="${c.online?'Online':'Offline'}"></div>
-      </div>
-    </div>`;
-  }).join('');
+    </div>
+  `).join("");
 }
 
-function selectPC(pcId){
-  selectedPC=pcId;
-  const c=clients[pcId];
-  document.getElementById('ss-selected-label').textContent=c?c.name:pcId;
-  document.getElementById('btn-take-ss').disabled=false;
-  renderSSUserList();
-  const latest=screenshots.filter(s=>s.pcId===pcId).sort((a,b)=>b.id-a.id)[0];
-  if(latest)showSSInViewer(latest);
-}
+// ==========================================
+// RENDER CHARTS
+// ==========================================
+function renderCharts() {
+  // Bar chart — top windows
+  const winCount = {};
+  allLogs.forEach(l => { winCount[l.window] = (winCount[l.window]||0) + 1; });
+  const topWindows = Object.entries(winCount).sort((a,b)=>b[1]-a[1]).slice(0, 10);
 
-async function requestScreenshot(){
-  if(!selectedPC){showToast('⚠ Select a PC first','error');return;}
-  const c=clients[selectedPC];
-  const name=c?c.name:selectedPC;
-  showSSLoading(name);
-  pushCmd(`→ Request screenshot: ${name}`,'info');
-  try{
-    const r=await fetch('/api/screenshot/request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pc:selectedPC})});
-    if(r.ok){pushCmd(`✓ Queued — waiting for agent...`,'ok');showToast(`📸 Capture requested: ${name}`,'success');}
-    else{pushCmd(`Server error ${r.status}`,'err');hideSSLoading();}
-  }catch{pushCmd('Cannot reach server','err');hideSSLoading();showToast('Server offline','error');}
-}
-
-async function requestAllScreenshots(){
-  const online=Object.values(clients).filter(c=>c.online);
-  if(!online.length){showToast('No online PCs','error');return;}
-  showToast(`📸 Requesting ${online.length} screenshots...`,'success');
-  for(let i=0;i<online.length;i++){
-    await new Promise(r=>setTimeout(r,i*400));
-    try{await fetch('/api/screenshot/request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pc:online[i].id})});}
-    catch{}
-    pushCmd(`→ Request: ${online[i].name}`,'info');
-  }
-}
-
-function quickCapture(pcName){
-  const c=Object.values(clients).find(c=>c.name===pcName||c.user===pcName||c.id===pcName);
-  if(!c){showToast('PC not connected','error');return;}
-  document.querySelectorAll('.nav-tab')[1].click();
-  setTimeout(()=>{selectPC(c.id);requestScreenshot();},200);
-}
-
-function showSSLoading(name){
-  const area=document.getElementById('ss-img-area');
-  const ex=area.querySelector('.ss-loading');if(ex)ex.remove();
-  const d=document.createElement('div');d.className='ss-loading';d.id='ss-loader';
-  d.innerHTML=`<div class="ss-loading-ring"></div><div class="ss-loading-text">WAITING FOR ${eh(name||'')}...</div>`;
-  area.appendChild(d);
-  document.getElementById('ss-live-badge').style.display='inline-flex';
-}
-function hideSSLoading(){const el=document.getElementById('ss-loader');if(el)el.remove();}
-
-function addScreenshot(pcName, dataUrl, timeStr){
-  const c=Object.values(clients).find(c=>c.name===pcName||c.id===pcName)||{};
-  const ss={id:Date.now()+Math.random(),pcId:c.id||pcName,pcName,dataUrl,time:timeStr||new Date().toLocaleString('en-GB')};
-  screenshots.unshift(ss);
-  animNum('s-ss',screenshots.length);
-  showSSInViewer(ss);
-  renderSSGrid();
-  renderSSUserList();
-}
-
-function showSSInViewer(ss){
-  currentViewSS=ss;
-  const area=document.getElementById('ss-img-area');
-  hideSSLoading();
-  area.innerHTML=`<img id="ss-main-img" src="${ss.dataUrl}" style="transform:scale(${ssZoom/100});transform-origin:center;transition:transform .3s;cursor:zoom-in;" onclick="openSSModal()">`;
-  document.getElementById('ss-current-user').textContent=ss.pcName;
-  document.getElementById('ss-current-time').textContent=ss.time;
-  document.getElementById('ss-live-badge').style.display='inline-flex';
-  document.querySelectorAll('.ss-thumb').forEach(t=>t.classList.toggle('active-thumb',t.dataset.id==ss.id));
-}
-
-function renderSSGrid(){
-  const grid=document.getElementById('ss-grid');
-  document.getElementById('ss-history-count').textContent=screenshots.length+' captures';
-  if(!screenshots.length){grid.innerHTML='<div class="ss-empty"><div class="ss-empty-icon">📷</div>No screenshots yet</div>';return;}
-  grid.innerHTML=screenshots.map(ss=>`
-    <div class="ss-thumb ${currentViewSS&&currentViewSS.id==ss.id?'active-thumb':''}" data-id="${ss.id}" onclick="showSSInViewer(ssById(${ss.id}))">
-      <div class="ss-thumb-imgwrap"><img src="${ss.dataUrl}" alt=""></div>
-      <div class="ss-thumb-info">
-        <div class="ss-thumb-user">💻 ${eh(ss.pcName)}</div>
-        <div class="ss-thumb-time">${eh(ss.time)}</div>
-      </div>
-      <button class="ss-thumb-del" onclick="deleteSS(${ss.id},event)">✕</button>
-    </div>`).join('');
-}
-
-function ssById(id){return screenshots.find(s=>s.id==id);}
-function deleteSS(id,ev){
-  ev.stopPropagation();
-  screenshots=screenshots.filter(s=>s.id!=id);
-  if(currentViewSS&&currentViewSS.id==id){
-    currentViewSS=null;
-    document.getElementById('ss-img-area').innerHTML=`<div class="ss-placeholder"><div class="ss-placeholder-icon">📸</div><div class="ss-placeholder-text">SELECT A PC AND CAPTURE</div></div>`;
-    document.getElementById('ss-live-badge').style.display='none';
-  }
-  renderSSGrid();renderSSUserList();animNum('s-ss',screenshots.length);
-}
-function clearAllScreenshots(){
-  screenshots=[];currentViewSS=null;
-  document.getElementById('ss-img-area').innerHTML=`<div class="ss-placeholder"><div class="ss-placeholder-icon">📸</div><div class="ss-placeholder-text">SELECT A PC AND CAPTURE</div></div>`;
-  document.getElementById('ss-live-badge').style.display='none';
-  renderSSGrid();renderSSUserList();animNum('s-ss',0);showToast('Cleared','success');
-}
-function zoomSS(dir){ssZoom=Math.max(25,Math.min(300,ssZoom+dir*25));document.getElementById('ss-zoom-label').textContent=ssZoom+'%';const img=document.getElementById('ss-main-img');if(img)img.style.transform=`scale(${ssZoom/100})`;}
-function fitSS(){ssZoom=100;document.getElementById('ss-zoom-label').textContent='100%';const img=document.getElementById('ss-main-img');if(img)img.style.transform='scale(1)';}
-function downloadCurrentSS(){if(!currentViewSS){showToast('No screenshot','error');return;}const a=document.createElement('a');a.href=currentViewSS.dataUrl;a.download=`ss_${currentViewSS.pcName}_${Date.now()}.png`;a.click();showToast('Downloading...','success');}
-function openSSModal(){if(!currentViewSS)return;document.getElementById('modal-img').src=currentViewSS.dataUrl;document.getElementById('modal-title').textContent=`📸 ${currentViewSS.pcName} — ${currentViewSS.time}`;document.getElementById('ss-modal').classList.add('show');}
-function closeSsModal(ev){if(ev.target.id==='ss-modal')document.getElementById('ss-modal').classList.remove('show');}
-function autoSS_toggle(){
-  autoSSOn=!autoSSOn;
-  const btn=document.getElementById('btn-autoss');
-  if(autoSSOn){
-    autoSSInterval=setInterval(()=>{
-      const online=Object.values(clients).filter(c=>c.online);
-      if(!online.length)return;
-      const c=online[Math.floor(Math.random()*online.length)];
-      fetch('/api/screenshot/request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pc:c.id})}).catch(()=>{});
-    },15000);
-    btn.textContent='⏸ AUTO: ON';btn.style.color='var(--cyan)';btn.style.borderColor='var(--cyan)';
-    showToast('Auto-capture ON (15s)','success');
-  }else{
-    clearInterval(autoSSInterval);
-    btn.textContent='▶ AUTO: OFF';btn.style.color='';btn.style.borderColor='';
-    showToast('Auto-capture OFF','success');
-  }
-}
-
-// ════ CLIENT PCS TAB ════
-function renderClients(){
-  const arr=Object.values(clients);
-  const countEl=document.getElementById('clients-count');
-  const online=arr.filter(c=>c.online).length;
-  if(countEl) countEl.textContent=`(${online} online / ${arr.length} total)`;
-
-  if(!arr.length){
-    document.getElementById('client-list').innerHTML=`<div class="empty-state"><div class="empty-icon">💻</div><div class="empty-text">NO PCS CONNECTED</div><div class="empty-sub">Run client.py on any PC to see it appear here automatically</div></div>`;
-    return;
-  }
-  document.getElementById('client-list').innerHTML=arr.map(c=>{
-    const col=getColor(c.id);
-    const bc=blockedSites.filter(b=>b.scope==='all'||b.scope===c.user||b.scope===c.name).length;
-    const ssCount=screenshots.filter(s=>s.pcId===c.id).length;
-    let alertBadge='';
-    if(c.alert==='CRITICAL')alertBadge=`<span class="alert-strip as-crit">⚠ CRITICAL</span>`;
-    else if(c.alert==='WARNING')alertBadge=`<span class="alert-strip as-warn">▲ WARNING</span>`;
-    else if(c.alert==='SUSPICIOUS')alertBadge=`<span class="alert-strip as-susp">◈ SUSPICIOUS</span>`;
-    return`<div class="client-item ${c.online?'is-online':''}">
-      <div class="c-top">
-        <div class="c-left">
-          <div class="c-avatar" style="background:${col}22;border:1px solid ${col}55;color:${col};">${c.name.slice(0,2).toUpperCase()}</div>
-          <div>
-            <div class="c-name">${eh(c.name)}</div>
-            <div class="c-sub">${eh(c.ip)} · ${eh(c.user)} · ${eh(c.os)}</div>
-          </div>
-        </div>
-        <div class="c-right">
-          ${alertBadge}
-          ${bc?`<span class="blocked-count">🚫 ${bc}</span>`:''}
-          ${ssCount?`<span style="font-size:10px;color:#0af;font-family:'Share Tech Mono',monospace;background:#0af1;border:1px solid #0af3;border-radius:4px;padding:2px 8px;">📸 ${ssCount}</span>`:''}
-          <div class="c-status"><div class="c-dot ${c.online?'online':'offline'}"></div><span style="color:${c.online?'var(--green)':'var(--dim)'}">${c.online?'ONLINE':'OFFLINE'}</span></div>
-          <button class="btn-ss-client" onclick="quickCapture('${eh(c.id)}')">📸 SS</button>
-          <button class="btn-target" onclick="quickTarget('${eh(c.user)}')">🎯 TARGET</button>
-        </div>
-      </div>
-      ${c.activeWindow?`<div class="c-window ${c.online?'':'hidden'}">▶ ${eh(c.activeWindow)}</div>`:''}
-    </div>`;
-  }).join('');
-}
-
-function quickTarget(user){
-  document.querySelectorAll('.nav-tab')[2].click();
-  setTimeout(()=>{
-    renderScopeBar();
-    const chip=[...document.querySelectorAll('#scope-bar .scope-chip')].find(c=>c.textContent.includes(user));
-    if(chip)setScope(user,chip);
-    showToast(`Target: ${user}`,'success');
-  },100);
-}
-
-// ════ WEBSITE CONTROL ════
-function renderScopeBar(){
-  const bar=document.getElementById('scope-bar');
-  bar.innerHTML=`<div class="scope-chip ${activeScope==='all'?'active':''}" onclick="setScope('all',this)">🌐 ALL PCs</div>`+
-    Object.values(clients).map(c=>`<div class="scope-chip ${activeScope===c.user?'active':''}" onclick="setScope('${eh(c.user)}',this)">💻 ${eh(c.name)}</div>`).join('');
-}
-function setScope(s,el){activeScope=s;document.querySelectorAll('#scope-bar .scope-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');}
-function blockSite(){
-  const inp=document.getElementById('block-input');
-  let domain=inp.value.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/\/.*$/,'');
-  if(!domain){showToast('Enter a domain','error');return;}
-  if(blockedSites.find(b=>b.domain===domain&&b.scope===activeScope)){showToast('Already blocked','error');return;}
-  blockedSites.unshift({id:'b'+Date.now(),domain,scope:activeScope,blockedAt:ts()});
-  inp.value='';renderBlockedList();animNum('s-blocked',blockedSites.length);
-  pushCmd(`BLOCK ${domain} → ${activeScope==='all'?'ALL':activeScope}`,'ok');
-  showToast(`🚫 ${domain} blocked`,'success');
-  sendCmd('block',domain,activeScope);
-}
-function blockPreset(domains,label){
-  let added=0;
-  domains.forEach(d=>{
-    d=d.toLowerCase();
-    if(!blockedSites.find(b=>b.domain===d&&b.scope===activeScope)){
-      blockedSites.unshift({id:'b'+Date.now()+Math.random(),domain:d,scope:activeScope,blockedAt:ts()});added++;
-    }
+  if (barChart) barChart.destroy();
+  barChart = new Chart(document.getElementById("barChart"), {
+    type: "bar",
+    data: {
+      labels: topWindows.map(x=>x[0]),
+      datasets: [{ label: "Events", data: topWindows.map(x=>x[1]),
+        backgroundColor: "#1f6feb", borderRadius: 4 }]
+    },
+    options: { plugins: { legend: { display: false } },
+      scales: { x: { ticks: { color: "#8b949e" }, grid: { color: "#21262d" } },
+                y: { ticks: { color: "#8b949e" }, grid: { color: "#21262d" } } } }
   });
-  if(!added){showToast(`${label} already blocked`,'error');return;}
-  renderBlockedList();animNum('s-blocked',blockedSites.length);
-  pushCmd(`PRESET [${label}] → ${activeScope}`,'ok');
-  showToast(`🚫 ${label} blocked`,'success');
-  domains.forEach(d=>sendCmd('block',d,activeScope));
-}
-function unblockSite(id){
-  const e=blockedSites.find(b=>b.id===id);if(!e)return;
-  blockedSites=blockedSites.filter(b=>b.id!==id);
-  renderBlockedList();animNum('s-blocked',blockedSites.length);
-  pushCmd(`UNBLOCK ${e.domain}`,'warn');showToast(`✓ ${e.domain} unblocked`,'success');
-  sendCmd('unblock',e.domain,e.scope);
-}
-function unblockAll(){
-  if(!blockedSites.length){showToast('Nothing to unblock','error');return;}
-  const n=blockedSites.length;blockedSites=[];
-  renderBlockedList();animNum('s-blocked',0);
-  pushCmd(`UNBLOCK ALL (${n} rules)`,'warn');showToast(`✓ All ${n} unblocked`,'success');
-  sendCmd('unblock_all','*','all');
-}
-function renderBlockedList(){
-  document.getElementById('blocked-count').textContent=blockedSites.length;
-  if(!blockedSites.length){
-    document.getElementById('blocked-list').innerHTML=`<div class="empty-state" style="padding:20px 0;"><div class="empty-icon">✓</div>Nothing blocked</div>`;return;
-  }
-  const ICO={'youtube.com':'▶','facebook.com':'👤','instagram.com':'📷','twitter.com':'✕','x.com':'✕','tiktok.com':'🎵','reddit.com':'📰','netflix.com':'🎬'};
-  document.getElementById('blocked-list').innerHTML=blockedSites.map(b=>`
-    <div class="blocked-item">
-      <div class="b-left">
-        <div class="b-icon">${ICO[b.domain]||'🌐'}</div>
-        <div><div class="b-domain">${eh(b.domain)}</div><div class="b-meta">${eh(b.blockedAt)}</div></div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span class="b-scope">${b.scope==='all'?'🌐 ALL':eh(b.scope)}</span>
-        <button class="btn-unblock" onclick="unblockSite('${b.id}')">UNBLOCK</button>
-      </div>
-    </div>`).join('');
-}
-async function sendCmd(action,domain,scope){
-  pushCmd(`→ POST /api/control ${action} ${domain}`,'info');
-  try{
-    const r=await fetch('/api/control',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,domain,scope,timestamp:new Date().toISOString()})});
-    if(r.ok)pushCmd(`✓ Server ACK`,'ok');
-    else pushCmd(`Server error ${r.status}`,'warn');
-  }catch{pushCmd('Server offline — command queued locally','warn');}
+
+  // Pie chart — per user
+  const userCount = {};
+  allLogs.forEach(l => { userCount[l.user] = (userCount[l.user]||0) + 1; });
+  const colors = ["#58a6ff","#3fb950","#f85149","#d2a8ff","#ffa657","#79c0ff","#56d364","#ff7b72","#bc8cff"];
+
+  if (pieChart) pieChart.destroy();
+  pieChart = new Chart(document.getElementById("pieChart"), {
+    type: "pie",
+    data: {
+      labels: Object.keys(userCount),
+      datasets: [{ data: Object.values(userCount),
+        backgroundColor: colors.slice(0, Object.keys(userCount).length) }]
+    },
+    options: { plugins: { legend: { labels: { color: "#c9d1d9" } } } }
+  });
+
+  // Alert timeline — group by hour
+  const alertByHour = {};
+  allLogs.filter(l=>l.alert).forEach(l => {
+    const h = new Date(l.time).toLocaleString([], {month:"short",day:"numeric",hour:"2-digit"});
+    alertByHour[h] = (alertByHour[h]||0) + 1;
+  });
+
+  if (alertChart) alertChart.destroy();
+  alertChart = new Chart(document.getElementById("alertChart"), {
+    type: "line",
+    data: {
+      labels: Object.keys(alertByHour),
+      datasets: [{ label: "Alerts", data: Object.values(alertByHour),
+        borderColor: "#f85149", backgroundColor: "#f8514922", fill: true, tension: 0.3 }]
+    },
+    options: { plugins: { legend: { labels: { color: "#c9d1d9" } } },
+      scales: { x: { ticks: { color: "#8b949e" }, grid: { color: "#21262d" } },
+                y: { ticks: { color: "#8b949e" }, grid: { color: "#21262d" } } } }
+  });
 }
 
-// ─── CMD LOG ───
-function pushCmd(text,type='info'){
-  cmdLogEntries.unshift({ts:ts(),text,type});
-  if(cmdLogEntries.length>500)cmdLogEntries.pop();
-  renderCmdLogs();
+// ==========================================
+// MODAL
+// ==========================================
+function openModal(url) {
+  document.getElementById("modalImg").src = url;
+  document.getElementById("modal").classList.add("open");
 }
-function renderCmdLogs(){
-  const html20=cmdLogEntries.slice(0,20).map(e=>`<div class="cmd-entry"><span class="cmd-ts">${e.ts}</span><span class="cmd-text t-${e.type}">${eh(e.text)}</span></div>`).join('');
-  const htmlAll=cmdLogEntries.map(e=>`<div class="cmd-entry"><span class="cmd-ts">${e.ts}</span><span class="cmd-text t-${e.type}">${eh(e.text)}</span></div>`).join('');
-  const m=document.getElementById('mini-cmdlog');if(m)m.innerHTML=html20;
-  const f=document.getElementById('full-cmdlog');if(f)f.innerHTML=htmlAll;
+function closeModal() {
+  document.getElementById("modal").classList.remove("open");
 }
-function clearCmdLog(){cmdLogEntries.length=0;renderCmdLogs();showToast('Cleared','success');}
+document.addEventListener("keydown", e => { if(e.key==="Escape") closeModal(); });
 
-// ─── TOAST ───
-let toastTimer;
-function showToast(msg,type='info'){
-  const t=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;
-  t.className='show '+(type||'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.className='',3200);
-}
-
-// ─── AI ───
-async function sendAI(){
-  const inp=document.getElementById('ai-input'),q=inp.value.trim();if(!q)return;
-  const btn=document.getElementById('ai-send'),rb=document.getElementById('ai-response'),ty=document.getElementById('ai-typing');
-  inp.value='';btn.disabled=true;ty.classList.add('active');rb.style.opacity='.4';
-  const online=Object.values(clients).filter(c=>c.online).map(c=>c.name);
-  const crits=logs.filter(l=>l.alert==='CRITICAL').length;
-  const sys=`You are CyberLab AI Analyst v6.1. Real-time monitor. Online PCs: ${online.join(',') || 'none'}. Total logs:${logs.length}, alerts:${logs.filter(l=>l.alert).length}, critical:${crits}, blocked sites:${blockedSites.length}, screenshots:${screenshots.length}. Be concise, 2-4 sentences, technical, no markdown.`;
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:[{role:'user',content:q}]})});
-    const d=await res.json();
-    const text=d.content?.map(c=>c.text||'').join('')||'No response.';
-    ty.classList.remove('active');rb.style.opacity='1';
-    rb.innerHTML=`<span style="color:#bf5af2;font-size:9px;">◈ AI [${ts()}]</span><br><br>${eh(text)}`;
-  }catch{ty.classList.remove('active');rb.style.opacity='1';rb.innerHTML=`<span style="color:var(--red)">⚠ AI OFFLINE</span>`;}
-  btn.disabled=false;
+// ==========================================
+// CLEAR DATA
+// ==========================================
+function confirmClear() {
+  const key = prompt("Admin key chahiye clear karne ke liye:");
+  if (!key) return;
+  fetch(`${SERVER}/admin/clear`, {
+    method: "POST",
+    headers: { "X-Admin-Key": key }
+  }).then(r => r.json()).then(d => {
+    alert(d.status === "cleared" ? "✅ Data cleared!" : "❌ " + (d.error||"Failed"));
+    fetchAll();
+  }).catch(()=>alert("Server se connect nahi ho saka"));
 }
 
-// ─── BOOT ───
-connectSSE();
-pushCmd('CyberLab Pro v6.1 started — waiting for real clients','ok');
-renderTable();
-renderClients();
-renderSSUserList();
+function setStatus(msg) {
+  document.getElementById("status-bar").textContent = msg;
+}
+
+// ==========================================
+// AUTO REFRESH every 5 seconds
+// ==========================================
+if (SERVER) fetchAll();
+setInterval(fetchAll, 5000);
 </script>
 </body>
 </html>
