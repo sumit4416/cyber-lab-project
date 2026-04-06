@@ -3,7 +3,7 @@ import time
 import pygetwindow as gw
 import socket
 
-SERVER = "http://192.168.1.10:5000/log"
+SERVER = "https://cyber-lab-project-4.onrender.com"
 
 # ✅ UNIQUE ID
 def get_client_id():
