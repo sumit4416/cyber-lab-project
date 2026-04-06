@@ -9,11 +9,14 @@ app = Flask(__name__)
 CORS(app)
 
 # ---------- FOLDER SETUP ----------
-os.makedirs("screenshots", exist_ok=True)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "logs.db")
+SCREENSHOTS_DIR = os.path.join(BASE_DIR, "screenshots")
+os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
 
 # ---------- DATABASE ----------
 def init_db():
-    conn = sqlite3.connect("logs.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''
         CREATE TABLE IF NOT EXISTS logs (
@@ -56,7 +59,7 @@ def log():
         if any(word in window.lower() for word in blacklist):
             alert = "⚠ Suspicious Activity"
 
-        conn = sqlite3.connect("logs.db")
+        conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         c.execute(
             "INSERT INTO logs (window, user, time, alert, screenshot) VALUES (?, ?, ?, ?, ?)",
@@ -73,7 +76,7 @@ def log():
 # -------- GET LOGS --------
 @app.route('/logs', methods=['GET'])
 def get_logs():
-    conn = sqlite3.connect("logs.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("SELECT window, user, time, alert, screenshot FROM logs ORDER BY id DESC LIMIT 500")
     rows = c.fetchall()
@@ -95,7 +98,7 @@ def get_logs():
 # -------- STATS --------
 @app.route('/stats', methods=['GET'])
 def get_stats():
-    conn = sqlite3.connect("logs.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     c.execute("SELECT COUNT(*) FROM logs")
@@ -125,12 +128,11 @@ def upload():
 
         file = request.files['screenshot']
         filename = secure_filename(file.filename)
-        filepath = os.path.join("screenshots", filename)
+        filepath = os.path.join(SCREENSHOTS_DIR, filename)
 
         file.save(filepath)
 
-        # Save screenshot name in latest log
-        conn = sqlite3.connect("logs.db")
+        conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         c.execute("UPDATE logs SET screenshot=? WHERE id=(SELECT MAX(id) FROM logs)", (filename,))
         conn.commit()
@@ -144,7 +146,7 @@ def upload():
 # -------- SERVE SCREENSHOT --------
 @app.route('/screenshots/<filename>')
 def get_screenshot(filename):
-    return send_from_directory('screenshots', filename)
+    return send_from_directory(SCREENSHOTS_DIR, filename)
 
 
 # -------- BLOCK WEBSITE --------
@@ -173,7 +175,7 @@ def clear_data():
     if key != "admin123":
         return jsonify({"error": "Unauthorized"}), 403
 
-    conn = sqlite3.connect("logs.db")
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("DELETE FROM logs")
     conn.commit()
