@@ -31,7 +31,35 @@ def init_db():
 init_db()
 
 # ---------- ADMIN KEY ----------
-ADMIN_KEY = "1234"   # change this
+ADMIN_KEY = "1234"
+
+# ---------- 🔥 BLOCK SYSTEM ----------
+blocked_sites = ["youtube", "facebook"]
+
+@app.route('/get_blocked', methods=['GET'])
+def get_blocked():
+    return jsonify(blocked_sites)
+
+@app.route('/add_block', methods=['POST'])
+def add_block():
+    data = request.json
+    site = data.get("site")
+
+    if site and site not in blocked_sites:
+        blocked_sites.append(site)
+
+    return jsonify({"status": "added", "blocked": blocked_sites})
+
+@app.route('/remove_block', methods=['POST'])
+def remove_block():
+    data = request.json
+    site = data.get("site")
+
+    if site in blocked_sites:
+        blocked_sites.remove(site)
+
+    return jsonify({"status": "removed", "blocked": blocked_sites})
+
 
 # ---------- ROUTES ----------
 
